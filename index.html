@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASL Cold Chain · Dashboard ລະບົບຕິດຕາມລົດຂົນສົ່ງ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --dark:    #1a1510;
+    --dark2:   #2a2018;
+    --amber:   #c8760a;
+    --amber2:  #e8920f;
+    --green:   #166534;
+    --green2:  #22913f;
+    --red:     #991b1b;
+    --red2:    #b52b27;
+    --blue:    #1e40af;
+    --blue2:   #2563eb;
+    --muted:   #78716c;
+    --bg:      #f7f5f2;
+    --bg2:     #f0ece6;
+    --white:   #ffffff;
+    --border:  #e2d9cc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--bg);
+    color: var(--dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--dark);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid var(--amber);
+  }
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--amber);
+    letter-spacing: 2px;
+  }
+  .logo-sub {
+    font-size: 11px;
+    color: #8a7a60;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .divider-v {
+    width: 1px;
+    height: 30px;
+    background: #3a3028;
+  }
+  .topbar-title {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    font-weight: 500;
+  }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .badge {
+    background: var(--amber);
+    color: var(--dark);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .time-display {
+    font-size: 12px;
+    color: #8a7a60;
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  /* ── HERO SECTION ── */
+  .hero {
+    background: var(--dark2);
+    padding: 28px 32px 24px;
+    border-bottom: 1px solid #2a2018;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 300px; height: 100%;
+    background: linear-gradient(135deg, transparent 40%, rgba(200,118,10,0.08) 100%);
+    pointer-events: none;
+  }
+  .hero-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .hero-text h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .hero-text h1 span { color: var(--amber2); }
+  .hero-text p {
+    font-size: 13px;
+    color: #8a7a60;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 16px;
+  }
+  .stat-pill {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 10px 18px;
+    text-align: center;
+    min-width: 100px;
+  }
+  .stat-pill .num {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--amber2);
+    line-height: 1;
+  }
+  .stat-pill .label {
+    font-size: 10px;
+    color: #8a7a60;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-pill.green .num { color: #4ade80; }
+  .stat-pill.red   .num { color: #f87171; }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    background: var(--white);
+    border-bottom: 2px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab:hover { color: var(--dark); }
+  .tab.active {
+    color: var(--amber);
+    border-bottom-color: var(--amber);
+  }
+  .tab-icon { font-size: 15px; }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    padding: 24px 32px;
+  }
+
+  /* ── DASHBOARD FRAME ── */
+  .dashboard-wrapper {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+  .dashboard-header {
+    background: var(--bg2);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .dashboard-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-red   { background: #f87171; }
+  .dot-amber { background: #fbbf24; }
+  .dot-green { background: #4ade80; }
+  .dashboard-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-left: 6px;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .dashboard-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-sm {
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    font-family: 'Sarabun', sans-serif;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-outline:hover { border-color: var(--amber); color: var(--amber); }
+  .btn-primary {
+    background: var(--amber);
+    color: var(--dark);
+  }
+  .btn-primary:hover { background: var(--amber2); }
+
+  /* Page selector */
+  .page-selector {
+    display: flex;
+    gap: 6px;
+    padding: 12px 20px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .page-selector::-webkit-scrollbar { display: none; }
+  .page-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--muted);
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-family: 'Sarabun', sans-serif;
+  }
+  .page-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .page-btn.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--dark);
+  }
+
+  /* iFrame */
+  .iframe-container {
+    position: relative;
+    width: 100%;
+    height: 700px;
+    background: var(--bg);
+  }
+  .iframe-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+  .iframe-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--bg);
+    z-index: 10;
+    transition: opacity 0.5s;
+  }
+  .iframe-loading.hidden { opacity: 0; pointer-events: none; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* ── INFO CARDS ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .info-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .info-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .info-icon.amber { background: #fff7ed; }
+  .info-icon.green { background: #f0fdf4; }
+  .info-icon.blue  { background: #eff6ff; }
+  .info-icon.red   { background: #fff1f2; }
+  .info-card-text .title {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .info-card-text .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--dark);
+    font-family: 'Rajdhani', sans-serif;
+  }
+  .info-card-text .sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--dark);
+    color: #5a4a30;
+    text-align: center;
+    padding: 16px;
+    font-size: 11px;
+    margin-top: 32px;
+    border-top: 2px solid var(--amber);
+  }
+  .footer span { color: var(--amber); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .topbar { padding: 0 16px; }
+    .hero { padding: 20px 16px; }
+    .hero-inner { flex-direction: column; align-items: flex-start; }
+    .hero-stats { flex-wrap: wrap; }
+    .main { padding: 16px; }
+    .nav-tabs { padding: 0 16px; }
+    .iframe-container { height: 500px; }
+  }
+
+  /* ── ANIMATIONS ── */
+  .fade-in {
+    animation: fadeIn 0.4s ease both;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div>
+      <div class="logo">ASL</div>
+      <div class="logo-sub">Cold Chain Logistics</div>
+    </div>
+    <div class="divider-v"></div>
+    <div class="topbar-title">ລະບົບຕິດຕາມລົດຂົນສົ່ງຄວາມເຢັນ · CPF LAOS</div>
+  </div>
+  <div class="topbar-right">
+    <div class="badge">Live</div>
+    <div class="time-display" id="clock">--:--:--</div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <h1>Dashboard <span>ການຕິດຕາມລົດຂົນສົ່ງ</span></h1>
+      <p>ຂໍ້ມູນອັບເດດອັດຕະໂນມັດ · Vehicle Inspection Monitoring System</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-pill">
+        <div class="num" id="stat-total">—</div>
+        <div class="label">ລົດທັງໝົດ</div>
+      </div>
+      <div class="stat-pill green">
+        <div class="num" id="stat-a">—</div>
+        <div class="label">Grade A</div>
+      </div>
+      <div class="stat-pill red">
+        <div class="num" id="stat-bc">—</div>
+        <div class="label">ຕ້ອງດູແລ</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <div class="tab active" onclick="switchTab(this, 'overview')">
+    <span class="tab-icon">📊</span> ພາບລວມ
+  </div>
+  <div class="tab" onclick="switchTab(this, 'temp')">
+    <span class="tab-icon">🌡️</span> ເຄື່ອງເຢັນ
+  </div>
+  <div class="tab" onclick="switchTab(this, 'detail')">
+    <span class="tab-icon">📋</span> ລາຍລະອຽດ
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- DASHBOARD FRAME -->
+  <div class="dashboard-wrapper fade-in">
+    <div class="dashboard-header">
+      <div class="dashboard-header-left">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-amber"></div>
+        <div class="dot dot-green"></div>
+        <div class="dashboard-label">Looker Studio · Live Data</div>
+      </div>
+      <div class="dashboard-actions">
+        <button class="btn-sm btn-outline" onclick="reloadFrame()">🔄 รีเฟรช</button>
+        <button class="btn-sm btn-primary" onclick="openFullscreen()">⛶ เต็มจอ</button>
+      </div>
+    </div>
+
+    <!-- PAGE SELECTOR -->
+    <div class="page-selector">
+      <button class="page-btn active" onclick="changePage(this, 'bgDrF')">📊 ພາບລວມ Overview</button>
+      <button class="page-btn" onclick="changePage(this, 'p_zahzjiei1d')">📋 ລາຍລະອຽດ</button>
+      <button class="page-btn" onclick="changePage(this, 'p_kf0rniei1d')">❄️ ເຄື່ອງເຢັນ</button>
+    </div>
+
+    <!-- IFRAME -->
+    <div class="iframe-container">
+      <div class="iframe-loading" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">ກຳລັງໂຫຼດ Dashboard...</div>
+      </div>
+      <iframe
+        id="dashboard-frame"
+        src="https://lookerstudio.google.com/embed/reporting/88a126bc-e092-434c-82f0-4a38c85e3051/page/bgDrF"
+        allowfullscreen
+        sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+        onload="frameLoaded()">
+      </iframe>
+    </div>
+  </div>
+
+  <!-- INFO CARDS -->
+  <div class="info-grid fade-in">
+    <div class="info-card">
+      <div class="info-icon amber">📊</div>
+      <div class="info-card-text">
+        <div class="title">ລະບົບ</div>
+        <div class="value">AppSheet</div>
+        <div class="sub">ບັນທຶກຂໍ້ມູນການກວດ</div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon green">📁</div>
+      <div class="info-card-text">
+        <div class="title">ຖານຂໍ້ມູນ</div>
+        <div class="value">Google Sheets</div>
+        <div class="sub">ເກັບ ແລະ ຄຳນວນຄ່າ</div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon blue">📈</div>
+      <div class="info-card-text">
+        <div class="title">Dashboard</div>
+        <div class="value">Looker Studio</div>
+        <div class="sub">ວິເຄາະ ແລະ ສະແດງຜົນ</div>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-icon red">📄</div>
+      <div class="info-card-text">
+        <div class="title">ລາຍງານ PDF</div>
+        <div class="value">Auto Generate</div>
+        <div class="sub">ສ້າງອັດຕະໂນມັດ + QR Code</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>ASL Cold Chain Logistics · CPF LAOS ·
+    <span>ລະບົບຕິດຕາມລົດຂົນສົ່ງຄວາມເຢັນ</span> ·
+    Powered by AppSheet + Google Sheets + Looker Studio
+  </p>
+</div>
+
+<script>
+  // ── Clock ──
+  function updateClock() {
+    var now = new Date();
+    var h = String(now.getHours()).padStart(2,'0');
+    var m = String(now.getMinutes()).padStart(2,'0');
+    var s = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = h + ':' + m + ':' + s;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ── Frame loaded ──
+  function frameLoaded() {
+    var loading = document.getElementById('loading');
+    loading.classList.add('hidden');
+  }
+
+  // ── Reload frame ──
+  function reloadFrame() {
+    var frame = document.getElementById('dashboard-frame');
+    var loading = document.getElementById('loading');
+    loading.classList.remove('hidden');
+    frame.src = frame.src;
+  }
+
+  // ── Fullscreen ──
+  function openFullscreen() {
+    var frame = document.getElementById('dashboard-frame');
+    if (frame.requestFullscreen) frame.requestFullscreen();
+    else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+  }
+
+  // ── Change page ──
+  var BASE = "https://lookerstudio.google.com/embed/reporting/88a126bc-e092-434c-82f0-4a38c85e3051/page/";
+  function changePage(btn, pageId) {
+    document.querySelectorAll('.page-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    var frame = document.getElementById('dashboard-frame');
+    var loading = document.getElementById('loading');
+    loading.classList.remove('hidden');
+    frame.src = BASE + pageId;
+  }
+
+  // ── Switch tab ──
+  function switchTab(el, tab) {
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+    el.classList.add('active');
+    var pages = { overview: 'bgDrF', temp: 'p_kf0rniei1d', detail: 'p_zahzjiei1d' };
+    if (pages[tab]) {
+      var frame = document.getElementById('dashboard-frame');
+      var loading = document.getElementById('loading');
+      loading.classList.remove('hidden');
+      frame.src = BASE + pages[tab];
+      document.querySelectorAll('.page-btn').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.page-btn')[Object.keys(pages).indexOf(tab)].classList.add('active');
+    }
+  }
+
+  // ── Fake stats (แทนด้วยข้อมูลจริงได้) ──
+  setTimeout(function() {
+    document.getElementById('stat-total').textContent = '16';
+    document.getElementById('stat-a').textContent = '14';
+    document.getElementById('stat-bc').textContent = '2';
+  }, 1000);
+</script>
+
+</body>
+</html>
