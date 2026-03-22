@@ -611,12 +611,61 @@
     }
   }
 
-  // ── Fake stats (แทนด้วยข้อมูลจริงได้) ──
-  setTimeout(function() {
-    document.getElementById('stat-total').textContent = '16';
-    document.getElementById('stat-a').textContent = '14';
-    document.getElementById('stat-bc').textContent = '2';
-  }, 1000);
+  // ── ดึงข้อมูลจาก Google Sheets ──
+  var CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSWNZc_sd-2a8KV4_yGPzxX3TER2PoaK6thoPcHxxjhrxbIRgJgDkgp0LizLx5H1NQuqB3XAQN542zl/pub?output=csv";
+
+  function parseCSV(text) {
+    var lines = text.trim().split("\n");
+    var headers = lines[0].split(",").map(function(h){ return h.trim().replace(/"/g,""); });
+    var rows = [];
+    for (var i = 1; i < lines.length; i++) {
+      var cols = lines[i].split(",").map(function(c){ return c.trim().replace(/"/g,""); });
+      if (cols.length < 2) continue;
+      var row = {};
+      headers.forEach(function(h, idx){ row[h] = cols[idx] || ""; });
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function loadStats() {
+    fetch(CSV_URL + "&t=" + Date.now())
+      .then(function(r){ return r.text(); })
+      .then(function(text) {
+        var rows = parseCSV(text);
+        var total  = rows.length;
+        var gradeA = rows.filter(function(r){ return r["OverallGrade_Real"] === "A"; }).length;
+        var gradeB = rows.filter(function(r){ return r["OverallGrade_Real"] === "B"; }).length;
+        var gradeC = rows.filter(function(r){ return r["OverallGrade_Real"] === "C"; }).length;
+        var bc     = gradeB + gradeC;
+
+        var scores = rows.map(function(r){ return parseFloat(r["TotalScore_Real"]) || 0; })
+                         .filter(function(s){ return s > 0; });
+        var avg = scores.length > 0
+          ? (scores.reduce(function(a,b){ return a+b; }, 0) / scores.length).toFixed(1)
+          : "-";
+
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-a').textContent     = gradeA;
+        document.getElementById('stat-bc').textContent    = bc;
+
+        // อัปเดต last sync time
+        var now = new Date();
+        var timeStr = now.getHours() + ":" + String(now.getMinutes()).padStart(2,"0");
+        document.getElementById('sync-time').textContent = "อัปเดต " + timeStr;
+      })
+      .catch(function(e) {
+        console.log("Error:", e);
+        document.getElementById('stat-total').textContent = "-";
+        document.getElementById('stat-a').textContent     = "-";
+        document.getElementById('stat-bc').textContent    = "-";
+      });
+  }
+
+  // โหลดตอนเปิดหน้า
+  loadStats();
+  // อัปเดตทุก 5 นาที
+  setInterval(loadStats, 5 * 60 * 1000);
 </script>
 
 </body>
