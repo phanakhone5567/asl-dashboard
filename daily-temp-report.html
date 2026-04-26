@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รายงานอุณหภูมิประจำวัน — DTDC Cold Chain</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', 'Segoe UI', sans-serif;
+    background: #0D2137;
+    color: #CFD8DC;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  /* Header */
+  .header {
+    background: #1565C0;
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header-left h1 { color: #fff; font-size: 17px; font-weight: 600; }
+  .header-left p { color: #BBDEFB; font-size: 12px; margin-top: 3px; }
+  .header-right { text-align: right; }
+  .header-right .date { color: #fff; font-size: 14px; font-weight: 600; }
+  .header-right .update { color: #BBDEFB; font-size: 11px; margin-top: 2px; }
+
+  /* Filters */
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-label { font-size: 10px; color: #90A4AE; }
+  select, input[type="date"] {
+    background: #112233;
+    border: 1px solid #2A4C6E;
+    border-radius: 6px;
+    color: #90CAF9;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  select:focus, input[type="date"]:focus { outline: none; border-color: #1565C0; }
+
+  /* KPI Row */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .kpi {
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .kpi-label { font-size: 11px; margin-bottom: 6px; }
+  .kpi-value { font-size: 26px; font-weight: 600; }
+  .kpi-sub { font-size: 10px; margin-top: 4px; opacity: 0.8; }
+  .kpi-total { background: #0D2137; border: 1px solid #2A4C6E; }
+  .kpi-total .kpi-label { color: #90CAF9; }
+  .kpi-total .kpi-value { color: #fff; }
+  .kpi-pass { background: #1A3C2E; border: 1px solid #2E7D32; }
+  .kpi-pass .kpi-label { color: #A5D6A7; }
+  .kpi-pass .kpi-value { color: #69F0AE; }
+  .kpi-fail { background: #3B0000; border: 1px solid #C62828; }
+  .kpi-fail .kpi-label { color: #FFCDD2; }
+  .kpi-fail .kpi-value { color: #FF8A80; }
+  .kpi-avg { background: #1A3C5E; border: 1px solid #1565C0; }
+  .kpi-avg .kpi-label { color: #90CAF9; }
+  .kpi-avg .kpi-value { color: #90CAF9; }
+
+  /* Section Title */
+  .section-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #2A4C6E;
+  }
+  .section-problem { color: #FF5252; }
+  .section-pass { color: #69F0AE; }
+
+  /* Cards Grid */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  /* Card */
+  .card {
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid #2A4C6E;
+    transition: transform 0.15s;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card-fail { background: #2A0000; border-color: #EF5350; }
+  .card-warn { background: #1E1000; border-color: #FF9800; }
+  .card-pass { background: #112233; border-color: #2A4C6E; }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .plate { font-size: 14px; font-weight: 600; color: #fff; }
+  .badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .badge-fail { background: #5C1A1A; color: #FF8A80; }
+  .badge-warn { background: #3C2A0A; color: #FFD740; }
+  .badge-pass { background: #1A3C2E; color: #69F0AE; }
+
+  .temp-display { font-size: 32px; font-weight: 700; margin-bottom: 6px; line-height: 1; }
+  .temp-fail { color: #FF5252; }
+  .temp-warn { color: #FFD740; }
+  .temp-pass { color: #69F0AE; }
+
+  .card-meta { font-size: 11px; color: #90A4AE; margin-bottom: 10px; }
+  .card-meta span { margin-right: 6px; }
+
+  /* Mini bar */
+  .mini-bar-wrap { position: relative; height: 8px; background: #1A3C5E; border-radius: 4px; overflow: visible; }
+  .mini-bar-fill { height: 100%; border-radius: 4px; }
+  .mini-bar-ref {
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    width: 2px;
+    background: #EF5350;
+  }
+  .mini-bar-ref-label {
+    position: absolute;
+    top: -18px;
+    left: 4px;
+    font-size: 9px;
+    color: #EF5350;
+    white-space: nowrap;
+  }
+
+  /* Summary Bar */
+  .summary-box {
+    background: #112233;
+    border: 1px solid #2A4C6E;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .summary-title { font-size: 12px; font-weight: 600; color: #90CAF9; margin-bottom: 12px; }
+  .sum-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .sum-label { font-size: 12px; color: #CFD8DC; width: 90px; flex-shrink: 0; }
+  .sum-bar-track { flex: 1; height: 14px; background: #0D2137; border-radius: 4px; overflow: hidden; }
+  .sum-bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+  .sum-bar-val { font-size: 10px; font-weight: 600; color: #fff; }
+  .sum-count { font-size: 11px; width: 80px; text-align: right; flex-shrink: 0; }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    color: #546E7A;
+    font-size: 13px;
+    background: #112233;
+    border-radius: 8px;
+    border: 1px dashed #2A4C6E;
+    margin-bottom: 16px;
+  }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 60px;
+    color: #90A4AE;
+    font-size: 14px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid #2A4C6E;
+    border-top-color: #1565C0;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .filters { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>🌡️ รายงานอุณหภูมิประจำวัน</h1>
+    <p>DTDC Cold Chain Inspection System</p>
+  </div>
+  <div class="header-right">
+    <div class="date" id="display-date">-</div>
+    <div class="update" id="last-update">กำลังโหลด...</div>
+  </div>
+</div>
+
+<div class="filters">
+  <div class="filter-group">
+    <div class="filter-label">วันที่ตรวจ</div>
+    <input type="date" id="filter-date">
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">บริษัทรถ</div>
+    <select id="filter-company">
+      <option value="">ทั้งหมด</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">สินค้าที่โหลด</div>
+    <select id="filter-product">
+      <option value="">ทั้งหมด</option>
+    </select>
+  </div>
+</div>
+
+<div id="main-content">
+  <div class="loading">
+    <div class="spinner"></div>
+    กำลังโหลดข้อมูล...
+  </div>
+</div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMVZpLDw93Dgc316KlyZwXiLhaQ8z6h6cOX8Xrnjs9bXJClFqywussefttmal0jbbpJtMyzOPw0W4h/pub?gid=0&single=true&output=csv';
+
+let allData = [];
+let headers = [];
+
+// Column indices (will be detected from header row)
+let COL = {};
+
+function detectColumns(headers) {
+  headers.forEach((h, i) => {
+    const name = h.trim();
+    if (name.includes('วันที่ตรวจ')) COL.date = i;
+    if (name.includes('ทะเบียนรถ')) COL.plate = i;
+    if (name.includes('ชื่อบริษัทรถ') || name.includes('ชื่อบริษัท')) COL.company = i;
+    if (name.includes('อุณหภูมิก่อนโหลดสินค้า')) COL.temp = i;
+    if (name.includes('ผลอุณหภูมิก่อนโหลด')) COL.tempResult = i;
+    if (name.includes('สินค้าที่โหลด')) COL.product = i;
+    if (name.includes('เวลาที่เริ่มตรวจ')) COL.time = i;
+    if (name.includes('ชื่อผู้ตรวจ')) COL.inspector = i;
+    if (name.includes('ผลการตรวจโดยรวม')) COL.overallResult = i;
+  });
+}
+
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  const result = [];
+  for (let i = 0; i < lines.length; i++) {
+    const row = [];
+    let current = '';
+    let inQuotes = false;
+    for (let c = 0; c < lines[i].length; c++) {
+      const char = lines[i][c];
+      if (char === '"') { inQuotes = !inQuotes; }
+      else if (char === ',' && !inQuotes) { row.push(current.trim()); current = ''; }
+      else { current += char; }
+    }
+    row.push(current.trim());
+    result.push(row);
+  }
+  return result;
+}
+
+function formatThaiDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const d = parseInt(parts[0]);
+      const m = parseInt(parts[1]);
+      const y = parseInt(parts[2]);
+      const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      return `${d} ${months[m]} ${y}`;
+    }
+  } catch(e) {}
+  return dateStr;
+}
+
+function getTodayString() {
+  const now = new Date();
+  const d = String(now.getDate()).padStart(2,'0');
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const y = now.getFullYear();
+  return `${y}-${m}-${d}`;
+}
+
+function matchDate(rowDate, filterDate) {
+  if (!filterDate) return true;
+  if (!rowDate) return false;
+  // rowDate might be like "19/3/2569" or "2026-03-19"
+  try {
+    const fp = filterDate.split('-');
+    const fy = parseInt(fp[0]);
+    const fm = parseInt(fp[1]);
+    const fd = parseInt(fp[2]);
+
+    const parts = rowDate.split('/');
+    if (parts.length === 3) {
+      const rd = parseInt(parts[0]);
+      const rm = parseInt(parts[1]);
+      let ry = parseInt(parts[2]);
+      // Convert Buddhist year to CE if needed
+      if (ry > 2500) ry = ry - 543;
+      return rd === fd && rm === fm && ry === fy;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function getTempColor(temp, result) {
+  const t = parseFloat(temp);
+  if (isNaN(t)) return 'pass';
+  if (result && result.includes('ไม่ผ่าน')) return 'fail';
+  if (result && result.includes('แจ้งเตือน')) return 'warn';
+  if (t > 5) return 'fail';
+  if (t > 4) return 'warn';
+  return 'pass';
+}
+
+function buildCard(row) {
+  const plate = row[COL.plate] || '-';
+  const company = row[COL.company] || '-';
+  const temp = row[COL.temp] || '-';
+  const tempResult = row[COL.tempResult] || '';
+  const product = row[COL.product] || '-';
+  const time = row[COL.time] || '';
+  const inspector = row[COL.inspector] || '-';
+
+  const status = getTempColor(temp, tempResult);
+  const tempNum = parseFloat(temp);
+  const pct = isNaN(tempNum) ? 0 : Math.min(100, Math.max(0, (tempNum + 5) / 25 * 100));
+  const refPct = Math.min(100, Math.max(0, (4 + 5) / 25 * 100));
+
+  const barColor = status === 'fail' ? '#EF5350' : status === 'warn' ? '#FF9800' : '#4CAF50';
+  const tempClass = `temp-${status}`;
+  const cardClass = `card card-${status}`;
+  const badgeClass = `badge badge-${status}`;
+  const badgeText = status === 'fail' ? '⚠️ ไม่ผ่าน' : status === 'warn' ? '⚠️ แจ้งเตือน' : '✅ ผ่าน';
+
+  return `
+    <div class="${cardClass}">
+      <div class="card-top">
+        <span class="plate">${plate}</span>
+        <span class="${badgeClass}">${badgeText}</span>
+      </div>
+      <div class="temp-display ${tempClass}">${isNaN(tempNum) ? '-' : tempNum.toFixed(1)}°C</div>
+      <div class="card-meta">
+        <span>🏢 ${company}</span>
+        <span>📦 ${product.split(',')[0].trim()}</span>
+        ${time ? `<span>⏰ ${time}</span>` : ''}
+      </div>
+      <div class="mini-bar-wrap">
+        <div class="mini-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+        <div class="mini-bar-ref" style="left:${refPct}%">
+          <span class="mini-bar-ref-label">4°C</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildSummary(filtered) {
+  const companyMap = {};
+  filtered.forEach(row => {
+    const co = row[COL.company] || 'ไม่ระบุ';
+    if (!companyMap[co]) companyMap[co] = { fail: 0, warn: 0, pass: 0, total: 0 };
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    companyMap[co][status]++;
+    companyMap[co].total++;
+  });
+
+  const maxTotal = Math.max(...Object.values(companyMap).map(v => v.total), 1);
+  let html = '';
+  Object.entries(companyMap).sort((a,b) => b[1].total - a[1].total).forEach(([co, v]) => {
+    const failPct = v.fail / maxTotal * 100;
+    const warnPct = v.warn / maxTotal * 100;
+    const passPct = v.pass / maxTotal * 100;
+    const statusText = v.fail > 0 ? `<span style="color:#FF8A80">${v.fail} ไม่ผ่าน</span>` :
+                       v.warn > 0 ? `<span style="color:#FFD740">${v.warn} แจ้งเตือน</span>` :
+                       `<span style="color:#69F0AE">ผ่านทั้งหมด</span>`;
+    html += `
+      <div class="sum-row">
+        <div class="sum-label">${co}</div>
+        <div class="sum-bar-track">
+          <div style="display:flex;height:100%">
+            ${v.fail > 0 ? `<div style="width:${failPct}%;background:#EF5350;display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:#fff">${v.fail}</span></div>` : ''}
+            ${v.warn > 0 ? `<div style="width:${warnPct}%;background:#FF9800"></div>` : ''}
+            ${v.pass > 0 ? `<div style="width:${passPct}%;background:#4CAF50"></div>` : ''}
+          </div>
+        </div>
+        <div class="sum-count">${statusText} / ${v.total} คัน</div>
+      </div>`;
+  });
+  return html;
+}
+
+function render() {
+  const filterDate = document.getElementById('filter-date').value;
+  const filterCompany = document.getElementById('filter-company').value;
+  const filterProduct = document.getElementById('filter-product').value;
+
+  let filtered = allData.filter(row => {
+    if (!row[COL.plate]) return false;
+    if (filterDate && !matchDate(row[COL.date], filterDate)) return false;
+    if (filterCompany && row[COL.company] !== filterCompany) return false;
+    if (filterProduct && !(row[COL.product] || '').includes(filterProduct)) return false;
+    return true;
+  });
+
+  const problems = filtered.filter(r => {
+    const s = getTempColor(r[COL.temp], r[COL.tempResult]);
+    return s === 'fail' || s === 'warn';
+  }).sort((a,b) => parseFloat(b[COL.temp]) - parseFloat(a[COL.temp]));
+
+  const passed = filtered.filter(r => getTempColor(r[COL.temp], r[COL.tempResult]) === 'pass')
+    .sort((a,b) => parseFloat(a[COL.temp]) - parseFloat(b[COL.temp]));
+
+  // KPI
+  const totalCount = filtered.length;
+  const passCount = passed.length;
+  const failCount = problems.length;
+  const temps = filtered.map(r => parseFloat(r[COL.temp])).filter(t => !isNaN(t));
+  const avgTemp = temps.length ? (temps.reduce((a,b)=>a+b,0)/temps.length).toFixed(1) : '-';
+
+  const displayDate = filterDate ?
+    new Date(filterDate).toLocaleDateString('th-TH', {day:'numeric',month:'short',year:'numeric'}) :
+    'ทุกวัน';
+
+  document.getElementById('display-date').textContent = `📅 ${displayDate}`;
+  document.getElementById('last-update').textContent = `อัปเดต: ${new Date().toLocaleTimeString('th-TH')}`;
+
+  let html = `
+    <div class="kpi-row">
+      <div class="kpi kpi-total">
+        <div class="kpi-label">รถที่ตรวจ</div>
+        <div class="kpi-value">${totalCount}</div>
+        <div class="kpi-sub">คัน</div>
+      </div>
+      <div class="kpi kpi-pass">
+        <div class="kpi-label">ผ่าน (≤4°C)</div>
+        <div class="kpi-value">${passCount}</div>
+        <div class="kpi-sub">${totalCount > 0 ? Math.round(passCount/totalCount*100) : 0}%</div>
+      </div>
+      <div class="kpi kpi-fail">
+        <div class="kpi-label">ไม่ผ่าน / แจ้งเตือน</div>
+        <div class="kpi-value">${failCount}</div>
+        <div class="kpi-sub">${totalCount > 0 ? Math.round(failCount/totalCount*100) : 0}%</div>
+      </div>
+      <div class="kpi kpi-avg">
+        <div class="kpi-label">เฉลี่ยอุณหภูมิ</div>
+        <div class="kpi-value">${avgTemp}</div>
+        <div class="kpi-sub">°C</div>
+      </div>
+    </div>`;
+
+  // Problem cards
+  html += `<div class="section-title section-problem">⚠️ รถที่มีปัญหา — ต้องแจ้งหัวหน้า (${problems.length} คัน)</div>`;
+  if (problems.length === 0) {
+    html += `<div class="empty-state">✅ ไม่มีรถที่มีปัญหาวันนี้</div>`;
+  } else {
+    html += `<div class="cards-grid">`;
+    problems.forEach(row => { html += buildCard(row); });
+    html += `</div>`;
+  }
+
+  // Pass cards
+  html += `<div class="section-title section-pass">✅ รถที่ผ่านการตรวจ (${passed.length} คัน)</div>`;
+  if (passed.length === 0) {
+    html += `<div class="empty-state">ไม่มีข้อมูล</div>`;
+  } else {
+    html += `<div class="cards-grid">`;
+    passed.forEach(row => { html += buildCard(row); });
+    html += `</div>`;
+  }
+
+  // Summary
+  html += `
+    <div class="summary-box">
+      <div class="summary-title">📊 สรุปแยกตามบริษัท</div>
+      ${buildSummary(filtered)}
+    </div>`;
+
+  document.getElementById('main-content').innerHTML = html;
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if (rows.length < 2) {
+      document.getElementById('main-content').innerHTML = '<div class="empty-state">ไม่พบข้อมูล</div>';
+      return;
+    }
+    headers = rows[0];
+    detectColumns(headers);
+    allData = rows.slice(1).filter(r => r.length > 3);
+
+    // Populate filters
+    const companies = [...new Set(allData.map(r => r[COL.company]).filter(Boolean))].sort();
+    const companySelect = document.getElementById('filter-company');
+    companies.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      companySelect.appendChild(opt);
+    });
+
+    const products = [...new Set(allData.flatMap(r => (r[COL.product]||'').split(',').map(p => p.trim())).filter(Boolean))].sort();
+    const productSelect = document.getElementById('filter-product');
+    products.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p; opt.textContent = p;
+      productSelect.appendChild(opt);
+    });
+
+    render();
+  } catch(e) {
+    document.getElementById('main-content').innerHTML = `<div class="empty-state">❌ โหลดข้อมูลไม่ได้<br><small>${e.message}</small></div>`;
+  }
+}
+
+// Event listeners
+document.getElementById('filter-date').addEventListener('change', render);
+document.getElementById('filter-company').addEventListener('change', render);
+document.getElementById('filter-product').addEventListener('change', render);
+
+// Set default date to today
+document.getElementById('filter-date').value = getTodayString();
+
+// Load
+loadData();
+setInterval(loadData, 5 * 60 * 1000); // Auto refresh every 5 min
+</script>
+</body>
+</html>
