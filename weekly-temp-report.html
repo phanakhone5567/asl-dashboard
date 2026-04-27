@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รายงานอุณหภูมิรายสัปดาห์ — DTDC Cold Chain</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', 'Segoe UI', sans-serif;
+    background: #F0F4F8;
+    color: #1A2B3C;
+    min-height: 100vh;
+    padding: 16px;
+    font-size: 16px;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1A3C5E, #1565C0);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header-left h1 { color: #fff; font-size: 22px; font-weight: 700; }
+  .header-left p { color: #BBDEFB; font-size: 14px; margin-top: 4px; }
+  .header-right { text-align: right; }
+  .header-right .week-label { color: #fff; font-size: 16px; font-weight: 700; }
+  .header-right .update { color: #BBDEFB; font-size: 13px; margin-top: 4px; }
+
+  /* Week selector */
+  .week-selector {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .week-nav { display: flex; align-items: center; gap: 10px; }
+  .week-btn {
+    background: #1565C0;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 18px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .week-btn:hover { background: #1A3C5E; }
+  .week-range {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1A2B3C;
+    min-width: 220px;
+    text-align: center;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-label { font-size: 12px; color: #546E7A; font-weight: 600; }
+  select {
+    background: #F8FAFC;
+    border: 1.5px solid #B0BEC5;
+    border-radius: 8px;
+    color: #1A2B3C;
+    padding: 8px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    min-width: 150px;
+  }
+
+  /* Comparison Banner */
+  .compare-banner {
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  }
+  .compare-better { background: linear-gradient(135deg, #1B5E20, #2E7D32); }
+  .compare-worse  { background: linear-gradient(135deg, #7f0000, #C62828); }
+  .compare-same   { background: linear-gradient(135deg, #1A3C5E, #1565C0); }
+  .compare-icon { font-size: 40px; }
+  .compare-text h2 { color: #fff; font-size: 20px; font-weight: 700; }
+  .compare-text p  { color: rgba(255,255,255,0.85); font-size: 14px; margin-top: 4px; }
+
+  /* KPI Row */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .kpi { border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.10); }
+  .kpi-label { font-size: 13px; margin-bottom: 6px; font-weight: 600; }
+  .kpi-value { font-size: 36px; font-weight: 700; line-height: 1; }
+  .kpi-sub { font-size: 13px; margin-top: 6px; }
+  .kpi-delta { font-size: 13px; margin-top: 6px; font-weight: 700; }
+  .delta-better { color: #A5D6A7; }
+  .delta-worse  { color: #FFCDD2; }
+  .delta-same   { color: #B0BEC5; }
+  .kpi-total { background: #1565C0; }
+  .kpi-total .kpi-label,.kpi-total .kpi-sub { color: #BBDEFB; }
+  .kpi-total .kpi-value { color: #fff; }
+  .kpi-pass { background: #2E7D32; }
+  .kpi-pass .kpi-label,.kpi-pass .kpi-sub { color: #C8E6C9; }
+  .kpi-pass .kpi-value { color: #fff; }
+  .kpi-fail { background: #C62828; }
+  .kpi-fail .kpi-label,.kpi-fail .kpi-sub { color: #FFCDD2; }
+  .kpi-fail .kpi-value { color: #fff; }
+  .kpi-avg { background: #37474F; }
+  .kpi-avg .kpi-label,.kpi-avg .kpi-sub { color: #B0BEC5; }
+  .kpi-avg .kpi-value { color: #fff; }
+
+  /* Two col layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+
+  /* Box */
+  .box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .box-title { font-size: 16px; font-weight: 700; color: #1A2B3C; margin-bottom: 14px; }
+
+  /* Daily breakdown */
+  .day-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .day-label { font-size: 14px; color: #37474F; width: 80px; flex-shrink: 0; font-weight: 600; }
+  .day-bar-track { flex: 1; height: 22px; background: #ECEFF1; border-radius: 6px; overflow: hidden; position: relative; }
+  .day-bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 8px; }
+  .day-bar-val { font-size: 12px; font-weight: 700; color: #fff; }
+  .day-count { font-size: 13px; width: 80px; text-align: right; flex-shrink: 0; font-weight: 600; }
+
+  /* Week comparison bars */
+  .compare-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .compare-label { font-size: 14px; color: #37474F; width: 100px; flex-shrink: 0; font-weight: 600; }
+  .compare-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .cbar { height: 16px; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; transition: width 0.4s; }
+  .cbar-val { font-size: 11px; font-weight: 700; color: #fff; }
+  .cbar-label { font-size: 11px; margin-left: 6px; }
+
+  /* Problem cards */
+  .section-title {
+    font-size: 17px; font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; border-radius: 8px;
+  }
+  .section-title::after { content:''; flex:1; height:2px; }
+  .section-problem { background: #FFEBEE; color: #B71C1C; }
+  .section-problem::after { background: #EF9A9A; }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .card {
+    border-radius: 12px; padding: 16px;
+    border-left: 6px solid;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    background: #fff;
+    transition: transform 0.15s;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card-fail { border-left-color: #C62828; }
+  .card-warn { border-left-color: #E65100; }
+  .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .plate { font-size: 18px; font-weight: 700; color: #1A2B3C; }
+  .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .badge-fail { background: #FFEBEE; color: #B71C1C; border: 1.5px solid #EF9A9A; }
+  .badge-warn { background: #FFF3E0; color: #E65100; border: 1.5px solid #FFCC80; }
+  .temp-display { font-size: 40px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+  .temp-fail { color: #C62828; }
+  .temp-warn { color: #E65100; }
+  .card-meta { font-size: 13px; color: #546E7A; line-height: 1.8; margin-bottom: 10px; }
+  .card-meta span { display: block; }
+  .mini-bar-wrap { position: relative; height: 8px; background: #ECEFF1; border-radius: 4px; overflow: visible; }
+  .mini-bar-fill { height: 100%; border-radius: 4px; }
+  .mini-bar-ref { position: absolute; top:-6px; bottom:-6px; width:2px; background:#1565C0; }
+  .mini-bar-ref-label { position: absolute; top:-20px; left:4px; font-size:10px; color:#1565C0; font-weight:700; white-space:nowrap; }
+
+  /* Empty / Loading */
+  .empty-state { text-align:center; padding:30px; color:#2E7D32; font-size:17px; font-weight:600; background:#E8F5E9; border-radius:12px; border:2px solid #A5D6A7; margin-bottom:16px; }
+  .loading { text-align:center; padding:60px; color:#546E7A; font-size:17px; }
+  .spinner { width:40px;height:40px;border:4px solid #B0BEC5;border-top-color:#1565C0;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  @media (max-width:700px) {
+    .kpi-row { grid-template-columns: repeat(2,1fr); }
+    .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>📊 รายงานอุณหภูมิรายสัปดาห์</h1>
+    <p>DTDC Cold Chain Inspection System | เปรียบเทียบ Week นี้ vs Week ก่อน</p>
+  </div>
+  <div class="header-right">
+    <div class="week-label" id="header-week">-</div>
+    <div class="update" id="last-update">กำลังโหลด...</div>
+  </div>
+</div>
+
+<div class="week-selector">
+  <div class="week-nav">
+    <button class="week-btn" id="btn-prev">◀</button>
+    <div class="week-range" id="week-range-label">-</div>
+    <button class="week-btn" id="btn-next">▶</button>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">บริษัทรถ</div>
+    <select id="filter-company"><option value="">ทั้งหมด</option></select>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">สินค้าที่โหลด</div>
+    <select id="filter-product"><option value="">ทั้งหมด</option></select>
+  </div>
+</div>
+
+<div id="main-content">
+  <div class="loading"><div class="spinner"></div>กำลังโหลดข้อมูล...</div>
+</div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMVZpLDw93Dgc316KlyZwXiLhaQ8z6h6cOX8Xrnjs9bXJClFqywussefttmal0jbbpJtMyzOPw0W4h/pub?gid=0&single=true&output=csv';
+
+let allData = [];
+let COL = {};
+let currentWeekOffset = 0; // 0 = this week, -1 = last week, etc.
+
+function detectColumns(headers) {
+  headers.forEach((h, i) => {
+    const name = h.trim();
+    if (name.includes('วันที่ตรวจ')) COL.date = i;
+    if (name.includes('ทะเบียนรถ')) COL.plate = i;
+    if (name.includes('ชื่อบริษัทรถ') || name.includes('ชื่อบริษัท')) COL.company = i;
+    if (name.includes('อุณหภูมิก่อนโหลดสินค้า')) COL.temp = i;
+    if (name.includes('ผลอุณหภูมิก่อนโหลด')) COL.tempResult = i;
+    if (name.includes('สินค้าที่โหลด')) COL.product = i;
+    if (name.includes('เวลาที่เริ่มตรวจ')) COL.time = i;
+    if (name.includes('ชื่อผู้ตรวจ')) COL.inspector = i;
+  });
+}
+
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  const result = [];
+  for (let i = 0; i < lines.length; i++) {
+    const row = [];
+    let current = '', inQuotes = false;
+    for (let c = 0; c < lines[i].length; c++) {
+      const char = lines[i][c];
+      if (char === '"') { inQuotes = !inQuotes; }
+      else if (char === ',' && !inQuotes) { row.push(current.trim()); current = ''; }
+      else { current += char; }
+    }
+    row.push(current.trim());
+    result.push(row);
+  }
+  return result;
+}
+
+function parseRowDate(dateStr) {
+  if (!dateStr) return null;
+  try {
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      let y = parseInt(parts[2]);
+      if (y > 2500) y -= 543;
+      const m = parseInt(parts[1]) - 1;
+      const d = parseInt(parts[0]);
+      return new Date(y, m, d);
+    }
+  } catch(e) {}
+  return null;
+}
+
+function getWeekRange(offset) {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const startOfThisWeek = new Date(now);
+  startOfThisWeek.setDate(now.getDate() - day + (day === 0 ? -6 : 1)); // Mon
+  startOfThisWeek.setHours(0,0,0,0);
+
+  const start = new Date(startOfThisWeek);
+  start.setDate(start.getDate() + offset * 7);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  end.setHours(23,59,59,999);
+  return { start, end };
+}
+
+function formatDate(d) {
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()+543}`;
+}
+
+const DAYS_TH = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+
+function getTempStatus(temp, result) {
+  const t = parseFloat(temp);
+  if (isNaN(t)) return 'pass';
+  if (result && result.includes('ไม่ผ่าน')) return 'fail';
+  if (result && result.includes('แจ้งเตือน')) return 'warn';
+  if (t > 5) return 'fail';
+  if (t > 4) return 'warn';
+  return 'pass';
+}
+
+function filterRows(rows, weekRange, company, product) {
+  return rows.filter(row => {
+    if (!row[COL.plate]) return false;
+    const d = parseRowDate(row[COL.date]);
+    if (!d) return false;
+    if (d < weekRange.start || d > weekRange.end) return false;
+    if (company && row[COL.company] !== company) return false;
+    if (product && !(row[COL.product]||'').includes(product)) return false;
+    return true;
+  });
+}
+
+function calcStats(rows) {
+  const total = rows.length;
+  const fail = rows.filter(r => getTempStatus(r[COL.temp], r[COL.tempResult]) === 'fail').length;
+  const warn = rows.filter(r => getTempStatus(r[COL.temp], r[COL.tempResult]) === 'warn').length;
+  const pass = rows.filter(r => getTempStatus(r[COL.temp], r[COL.tempResult]) === 'pass').length;
+  const temps = rows.map(r => parseFloat(r[COL.temp])).filter(t => !isNaN(t));
+  const avgTemp = temps.length ? (temps.reduce((a,b)=>a+b,0)/temps.length) : null;
+  const failRate = total > 0 ? Math.round((fail+warn)/total*100) : 0;
+  const passRate = total > 0 ? Math.round(pass/total*100) : 0;
+  return { total, fail, warn, pass, avgTemp, failRate, passRate };
+}
+
+function buildCard(row) {
+  const plate = row[COL.plate] || '-';
+  const company = row[COL.company] || '-';
+  const temp = row[COL.temp] || '-';
+  const tempResult = row[COL.tempResult] || '';
+  const product = (row[COL.product]||'-').split(',')[0].trim();
+  const time = row[COL.time] || '';
+  const d = parseRowDate(row[COL.date]);
+  const dateStr = d ? formatDate(d) : '';
+  const status = getTempStatus(temp, tempResult);
+  const tempNum = parseFloat(temp);
+  const pct = isNaN(tempNum) ? 0 : Math.min(100, Math.max(0, (tempNum+5)/25*100));
+  const refPct = Math.min(100, Math.max(0, (4+5)/25*100));
+  const barColor = status==='fail'?'#EF5350':status==='warn'?'#FF9800':'#4CAF50';
+  const badgeText = status==='fail'?'⚠️ ไม่ผ่าน':'⚠️ แจ้งเตือน';
+  const badgeClass = status==='fail'?'badge-fail':'badge-warn';
+  const tempClass = status==='fail'?'temp-fail':'temp-warn';
+  return `<div class="card card-${status}">
+    <div class="card-top">
+      <span class="plate">${plate}</span>
+      <span class="badge ${badgeClass}">${badgeText}</span>
+    </div>
+    <div class="temp-display ${tempClass}">${isNaN(tempNum)?'-':tempNum.toFixed(1)}°C</div>
+    <div class="card-meta">
+      <span>📅 ${dateStr} ${time?'⏰ '+time:''}</span>
+      <span>🏢 ${company}</span>
+      <span>📦 ${product}</span>
+    </div>
+    <div class="mini-bar-wrap">
+      <div class="mini-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+      <div class="mini-bar-ref" style="left:${refPct}%">
+        <span class="mini-bar-ref-label">4°C</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function render() {
+  const company = document.getElementById('filter-company').value;
+  const product = document.getElementById('filter-product').value;
+
+  const thisWeek = getWeekRange(currentWeekOffset);
+  const prevWeek = getWeekRange(currentWeekOffset - 1);
+
+  const thisRows = filterRows(allData, thisWeek, company, product);
+  const prevRows = filterRows(allData, prevWeek, company, product);
+
+  const thisStats = calcStats(thisRows);
+  const prevStats = calcStats(prevRows);
+
+  // Update header
+  const weekLabel = currentWeekOffset === 0 ? 'สัปดาห์นี้' :
+                    currentWeekOffset === -1 ? 'สัปดาห์ที่แล้ว' :
+                    `${Math.abs(currentWeekOffset)} สัปดาห์ก่อน`;
+  document.getElementById('header-week').textContent = `📅 ${weekLabel}`;
+  document.getElementById('week-range-label').textContent = `${formatDate(thisWeek.start)} — ${formatDate(thisWeek.end)}`;
+  document.getElementById('last-update').textContent = `อัปเดต: ${new Date().toLocaleTimeString('th-TH')}`;
+
+  // Comparison banner
+  let compareClass, compareIcon, compareTitle, compareDesc;
+  const hasPrev = prevStats.total > 0;
+  if (!hasPrev) {
+    compareClass = 'compare-same';
+    compareIcon = '📊';
+    compareTitle = 'ไม่มีข้อมูลสัปดาห์ก่อนเพื่อเปรียบเทียบ';
+    compareDesc = `สัปดาห์นี้ตรวจทั้งหมด ${thisStats.total} คัน | ไม่ผ่าน+แจ้งเตือน ${thisStats.fail+thisStats.warn} คัน`;
+  } else {
+    const diff = thisStats.failRate - prevStats.failRate;
+    const tempDiff = thisStats.avgTemp && prevStats.avgTemp ? thisStats.avgTemp - prevStats.avgTemp : null;
+    if (diff < -5) {
+      compareClass = 'compare-better';
+      compareIcon = '📈';
+      compareTitle = `ดีขึ้น! อัตราปัญหาลดลง ${Math.abs(diff)}% จากสัปดาห์ก่อน`;
+      compareDesc = `สัปดาห์ก่อน: ${prevStats.failRate}% มีปัญหา → สัปดาห์นี้: ${thisStats.failRate}% มีปัญหา${tempDiff !== null ? ` | อุณหภูมิเฉลี่ย${tempDiff > 0 ? 'สูงขึ้น' : 'ลดลง'} ${Math.abs(tempDiff).toFixed(1)}°C` : ''}`;
+    } else if (diff > 5) {
+      compareClass = 'compare-worse';
+      compareIcon = '📉';
+      compareTitle = `แย่ลง! อัตราปัญหาเพิ่มขึ้น ${diff}% จากสัปดาห์ก่อน`;
+      compareDesc = `สัปดาห์ก่อน: ${prevStats.failRate}% มีปัญหา → สัปดาห์นี้: ${thisStats.failRate}% มีปัญหา${tempDiff !== null ? ` | อุณหภูมิเฉลี่ย${tempDiff > 0 ? 'สูงขึ้น' : 'ลดลง'} ${Math.abs(tempDiff).toFixed(1)}°C` : ''}`;
+    } else {
+      compareClass = 'compare-same';
+      compareIcon = '➡️';
+      compareTitle = `ใกล้เคียงเดิม อัตราปัญหาต่าง ${diff > 0 ? '+' : ''}${diff}% จากสัปดาห์ก่อน`;
+      compareDesc = `สัปดาห์ก่อน: ${prevStats.failRate}% | สัปดาห์นี้: ${thisStats.failRate}%`;
+    }
+  }
+
+  // Delta helpers
+  function delta(curr, prev, lowerIsBetter=true) {
+    if (!hasPrev || prev === null || curr === null) return '';
+    const d = curr - prev;
+    if (Math.abs(d) < 0.1) return `<div class="kpi-delta delta-same">— เท่าเดิม</div>`;
+    const better = lowerIsBetter ? d < 0 : d > 0;
+    const cls = better ? 'delta-better' : 'delta-worse';
+    const arrow = d > 0 ? '▲' : '▼';
+    const sign = d > 0 ? '+' : '';
+    return `<div class="kpi-delta ${cls}">${arrow} ${sign}${typeof curr === 'number' && !Number.isInteger(curr) ? d.toFixed(1) : Math.round(d)} จากสัปดาห์ก่อน</div>`;
+  }
+
+  let html = '';
+
+  // Compare banner
+  html += `<div class="compare-banner ${compareClass}">
+    <div class="compare-icon">${compareIcon}</div>
+    <div class="compare-text">
+      <h2>${compareTitle}</h2>
+      <p>${compareDesc}</p>
+    </div>
+  </div>`;
+
+  // KPI
+  html += `<div class="kpi-row">
+    <div class="kpi kpi-total">
+      <div class="kpi-label">รถที่ตรวจสัปดาห์นี้</div>
+      <div class="kpi-value">${thisStats.total}</div>
+      <div class="kpi-sub">คัน</div>
+      ${delta(thisStats.total, prevStats.total, false)}
+    </div>
+    <div class="kpi kpi-pass">
+      <div class="kpi-label">ผ่าน (≤4°C)</div>
+      <div class="kpi-value">${thisStats.pass}</div>
+      <div class="kpi-sub">${thisStats.passRate}%</div>
+      ${delta(thisStats.passRate, prevStats.passRate, false)}
+    </div>
+    <div class="kpi kpi-fail">
+      <div class="kpi-label">ไม่ผ่าน / แจ้งเตือน</div>
+      <div class="kpi-value">${thisStats.fail + thisStats.warn}</div>
+      <div class="kpi-sub">${thisStats.failRate}%</div>
+      ${delta(thisStats.failRate, prevStats.failRate, true)}
+    </div>
+    <div class="kpi kpi-avg">
+      <div class="kpi-label">เฉลี่ยอุณหภูมิ</div>
+      <div class="kpi-value">${thisStats.avgTemp !== null ? thisStats.avgTemp.toFixed(1) : '-'}</div>
+      <div class="kpi-sub">°C</div>
+      ${delta(thisStats.avgTemp, prevStats.avgTemp, true)}
+    </div>
+  </div>`;
+
+  // Two col: Daily breakdown + Company compare
+  // Daily breakdown
+  const dayMap = {};
+  for (let i=0;i<7;i++) {
+    const d = new Date(thisWeek.start);
+    d.setDate(d.getDate()+i);
+    dayMap[d.toDateString()] = { label: DAYS_TH[d.getDay()]+' '+(d.getDate()), fail:0, warn:0, pass:0, total:0 };
+  }
+  thisRows.forEach(row => {
+    const d = parseRowDate(row[COL.date]);
+    if (!d) return;
+    const key = d.toDateString();
+    if (!dayMap[key]) return;
+    const s = getTempStatus(row[COL.temp], row[COL.tempResult]);
+    dayMap[key][s]++;
+    dayMap[key].total++;
+  });
+
+  const maxDay = Math.max(...Object.values(dayMap).map(v=>v.total), 1);
+  let dailyHtml = '';
+  Object.values(dayMap).forEach(v => {
+    if (v.total === 0) {
+      dailyHtml += `<div class="day-row">
+        <div class="day-label">${v.label}</div>
+        <div class="day-bar-track"><div style="padding-left:8px;color:#90A4AE;font-size:12px;line-height:22px">ไม่มีข้อมูล</div></div>
+        <div class="day-count" style="color:#B0BEC5">0 คัน</div>
+      </div>`;
+      return;
+    }
+    const failW = v.fail/maxDay*100;
+    const warnW = v.warn/maxDay*100;
+    const passW = v.pass/maxDay*100;
+    dailyHtml += `<div class="day-row">
+      <div class="day-label">${v.label}</div>
+      <div class="day-bar-track">
+        <div style="display:flex;height:100%">
+          ${v.fail>0?`<div style="width:${failW}%;background:#EF5350;display:flex;align-items:center;padding-left:6px"><span style="font-size:11px;color:#fff;font-weight:700">${v.fail}</span></div>`:''}
+          ${v.warn>0?`<div style="width:${warnW}%;background:#FF9800"></div>`:''}
+          ${v.pass>0?`<div style="width:${passW}%;background:#4CAF50"></div>`:''}
+        </div>
+      </div>
+      <div class="day-count">${v.total} คัน</div>
+    </div>`;
+  });
+
+  // Company compare this vs prev
+  const coMap = {};
+  [...thisRows, ...prevRows].forEach(row => {
+    const co = row[COL.company]||'ไม่ระบุ';
+    if (!coMap[co]) coMap[co] = { thisF:0, thisT:0, prevF:0, prevT:0 };
+  });
+  thisRows.forEach(row => {
+    const co = row[COL.company]||'ไม่ระบุ';
+    if (!coMap[co]) coMap[co] = { thisF:0, thisT:0, prevF:0, prevT:0 };
+    const s = getTempStatus(row[COL.temp], row[COL.tempResult]);
+    if (s!=='pass') coMap[co].thisF++;
+    coMap[co].thisT++;
+  });
+  prevRows.forEach(row => {
+    const co = row[COL.company]||'ไม่ระบุ';
+    if (!coMap[co]) coMap[co] = { thisF:0, thisT:0, prevF:0, prevT:0 };
+    const s = getTempStatus(row[COL.temp], row[COL.tempResult]);
+    if (s!=='pass') coMap[co].prevF++;
+    coMap[co].prevT++;
+  });
+
+  const maxCo = Math.max(...Object.values(coMap).map(v=>Math.max(v.thisT,v.prevT)),1);
+  let coHtml = '';
+  Object.entries(coMap).sort((a,b)=>b[1].thisT-a[1].thisT).forEach(([co,v]) => {
+    const thisW = v.thisT/maxCo*90;
+    const prevW = v.prevT/maxCo*90;
+    const thisFc = v.thisT>0&&v.thisF/v.thisT>0.3?'#EF5350':'#1565C0';
+    const prevFc = v.prevT>0&&v.prevF/v.prevT>0.3?'#EF9A9A':'#90CAF9';
+    const arrow = !hasPrev||v.prevF===0 ? '' : v.thisF < v.prevF ? ' ✅' : v.thisF > v.prevF ? ' ⚠️' : '';
+    coHtml += `<div class="compare-row">
+      <div class="compare-label">${co}${arrow}</div>
+      <div class="compare-bars">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:10px;color:#546E7A;width:60px">สัปดาห์นี้</span>
+          <div style="flex:1;height:14px;background:#ECEFF1;border-radius:4px;overflow:hidden">
+            <div style="width:${thisW}%;height:100%;background:${thisFc};border-radius:4px"></div>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:#1A2B3C;width:50px">${v.thisT}คัน ${v.thisF>0?'<span style="color:#C62828">('+v.thisF+'❌)</span>':''}</span>
+        </div>
+        ${hasPrev?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px">
+          <span style="font-size:10px;color:#90A4AE;width:60px">สัปดาห์ก่อน</span>
+          <div style="flex:1;height:10px;background:#ECEFF1;border-radius:4px;overflow:hidden">
+            <div style="width:${prevW}%;height:100%;background:${prevFc};border-radius:4px"></div>
+          </div>
+          <span style="font-size:11px;color:#90A4AE;width:50px">${v.prevT}คัน ${v.prevF>0?'('+v.prevF+'❌)':''}</span>
+        </div>`:''}
+      </div>
+    </div>`;
+  });
+
+  html += `<div class="two-col">
+    <div class="box">
+      <div class="box-title">📅 ผลตรวจแต่ละวันในสัปดาห์</div>
+      <div style="display:flex;gap:12px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:12px;border-radius:2px;background:#EF5350"></div><span style="font-size:12px;color:#546E7A">ไม่ผ่าน</span></div>
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:12px;border-radius:2px;background:#FF9800"></div><span style="font-size:12px;color:#546E7A">แจ้งเตือน</span></div>
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:12px;border-radius:2px;background:#4CAF50"></div><span style="font-size:12px;color:#546E7A">ผ่าน</span></div>
+      </div>
+      ${dailyHtml}
+    </div>
+    <div class="box">
+      <div class="box-title">🏢 เปรียบเทียบแต่ละบริษัท (สัปดาห์นี้ vs ก่อน)</div>
+      ${coHtml || '<div style="color:#90A4AE;font-size:14px">ไม่มีข้อมูล</div>'}
+    </div>
+  </div>`;
+
+  // Problem cards
+  const problems = thisRows.filter(r => {
+    const s = getTempStatus(r[COL.temp], r[COL.tempResult]);
+    return s==='fail'||s==='warn';
+  }).sort((a,b) => parseFloat(b[COL.temp])-parseFloat(a[COL.temp]));
+
+  html += `<div class="section-title section-problem">⚠️ รถที่มีปัญหาสัปดาห์นี้ (${problems.length} คัน)</div>`;
+  if (problems.length === 0) {
+    html += `<div class="empty-state">✅ ไม่มีรถที่มีปัญหาสัปดาห์นี้</div>`;
+  } else {
+    html += `<div class="cards-grid">`;
+    problems.forEach(row => { html += buildCard(row); });
+    html += `</div>`;
+  }
+
+  // Pass summary
+  html += `<div style="background:#E8F5E9;border:2px solid #A5D6A7;border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px">
+    <div style="font-size:36px">✅</div>
+    <div>
+      <div style="font-size:18px;font-weight:700;color:#2E7D32">รถที่ผ่านการตรวจ: ${thisStats.pass} คัน (${thisStats.passRate}%)</div>
+      <div style="font-size:14px;color:#388E3C;margin-top:4px">อุณหภูมิอยู่ในเกณฑ์ปกติ (≤ 4°C) ทั้งหมด</div>
+    </div>
+  </div>`;
+
+  document.getElementById('main-content').innerHTML = html;
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if (rows.length < 2) return;
+    detectColumns(rows[0]);
+    allData = rows.slice(1).filter(r => r.length > 3);
+
+    const companies = [...new Set(allData.map(r=>r[COL.company]).filter(Boolean))].sort();
+    const cs = document.getElementById('filter-company');
+    if (cs.options.length === 1) {
+      companies.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; cs.appendChild(o); });
+    }
+    const products = [...new Set(allData.flatMap(r=>(r[COL.product]||'').split(',').map(p=>p.trim())).filter(Boolean))].sort();
+    const ps = document.getElementById('filter-product');
+    if (ps.options.length === 1) {
+      products.forEach(p => { const o=document.createElement('option'); o.value=p; o.textContent=p; ps.appendChild(o); });
+    }
+    render();
+    document.getElementById('last-update').textContent = `อัปเดต: ${new Date().toLocaleTimeString('th-TH')}`;
+  } catch(e) {
+    document.getElementById('main-content').innerHTML = `<div class="empty-state" style="background:#FFEBEE;border-color:#EF9A9A;color:#B71C1C">❌ โหลดข้อมูลไม่ได้<br><small>${e.message}</small></div>`;
+  }
+}
+
+document.getElementById('btn-prev').addEventListener('click', () => { currentWeekOffset--; render(); });
+document.getElementById('btn-next').addEventListener('click', () => { if (currentWeekOffset < 0) { currentWeekOffset++; render(); } });
+document.getElementById('filter-company').addEventListener('change', render);
+document.getElementById('filter-product').addEventListener('change', render);
+
+loadData();
+setInterval(loadData, 10 * 60 * 1000);
+</script>
+</body>
+</html>
