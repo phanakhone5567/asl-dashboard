@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temperature Log — DTDC Cold Chain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0A0E14;
+  --surface:  #111720;
+  --surface2: #1A2232;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --text:     #E8EDF4;
+  --muted:    #6B7A95;
+  --accent:   #3B82F6;
+
+  --fail:     #EF4444;
+  --fail-bg:  rgba(239,68,68,0.10);
+  --fail-border: rgba(239,68,68,0.30);
+
+  --warn:     #F59E0B;
+  --warn-bg:  rgba(245,158,11,0.10);
+  --warn-border: rgba(245,158,11,0.30);
+
+  --pass:     #10B981;
+  --pass-bg:  rgba(16,185,129,0.10);
+  --pass-border: rgba(16,185,129,0.30);
+
+  --font-body: 'IBM Plex Sans Thai', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 24px 20px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ── SCANLINES texture ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── HEADER ── */
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border2);
+}
+
+.header-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.header-title {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.header-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.header-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  padding: 5px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--pass);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.5; transform:scale(0.8); }
+}
+
+/* ── FILTERS ── */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+select, input[type="date"] {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  min-width: 150px;
+  transition: border-color 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7A95' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+select:focus, input[type="date"]:focus { outline: none; border-color: var(--accent); }
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+
+/* ── ALERT BANNER ── */
+.alert-banner {
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid;
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+.alert-ok   { background: var(--pass-bg);  border-color: var(--pass-border); }
+.alert-warn { background: var(--warn-bg);  border-color: var(--warn-border); }
+.alert-fail { background: var(--fail-bg);  border-color: var(--fail-border); }
+.alert-icon { font-size: 22px; flex-shrink: 0; }
+.alert-body h3 { font-size: 15px; font-weight: 600; }
+.alert-ok   .alert-body h3 { color: var(--pass); }
+.alert-warn .alert-body h3 { color: var(--warn); }
+.alert-fail .alert-body h3 { color: var(--fail); }
+.alert-body p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* ── KPI GRID ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--kpi-color, var(--accent));
+}
+.kpi-card:hover { border-color: var(--border2); }
+
+.kpi-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.kpi-value {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--kpi-color, var(--text));
+}
+.kpi-unit {
+  font-size: 14px;
+  color: var(--muted);
+  margin-left: 4px;
+}
+.kpi-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+  font-family: var(--font-mono);
+}
+
+/* ── SECTION HEADER ── */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  margin-top: 28px;
+}
+.section-header h2 {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+.section-header .count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  border: 1px solid;
+}
+.count-fail { color: var(--fail); border-color: var(--fail-border); background: var(--fail-bg); }
+.count-pass { color: var(--pass); border-color: var(--pass-border); background: var(--pass-bg); }
+.section-header::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* ── VEHICLE CARDS ── */
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.vehicle-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.vehicle-card:hover { transform: translateY(-2px); border-color: var(--border2); }
+
+.vehicle-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--card-glow);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  border-radius: 8px;
+}
+.vehicle-card:hover::after { opacity: 1; }
+
+.card-fail { border-left: 3px solid var(--fail); --card-glow: radial-gradient(ellipse at top left, rgba(239,68,68,0.04), transparent 70%); }
+.card-warn { border-left: 3px solid var(--warn); --card-glow: radial-gradient(ellipse at top left, rgba(245,158,11,0.04), transparent 70%); }
+
+.card-row1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+.plate-num {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.05em;
+}
+
+.status-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+.tag-fail { color: var(--fail); border-color: var(--fail-border); background: var(--fail-bg); }
+.tag-warn { color: var(--warn); border-color: var(--warn-border); background: var(--warn-bg); }
+
+.temp-reading {
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+.temp-reading sup { font-size: 20px; vertical-align: super; }
+.temp-fail { color: var(--fail); }
+.temp-warn { color: var(--warn); }
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+.meta-key {
+  color: var(--muted);
+  opacity: 0.6;
+  min-width: 52px;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.meta-val { color: var(--text); }
+
+/* Gauge bar */
+.gauge {
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: visible;
+  position: relative;
+  margin-top: 4px;
+}
+.gauge-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.gauge-ref {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 1.5px;
+  background: var(--accent);
+  opacity: 0.6;
+}
+.gauge-ref-label {
+  position: absolute;
+  bottom: 8px;
+  left: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--accent);
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+/* ── PASS SUMMARY ── */
+.pass-summary {
+  background: var(--surface);
+  border: 1px solid var(--pass-border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.pass-icon { font-size: 28px; }
+.pass-text h3 { font-size: 16px; font-weight: 600; color: var(--pass); }
+.pass-text p { font-size: 12px; color: var(--muted); margin-top: 3px; font-family: var(--font-mono); }
+
+/* ── COMPANY TABLE ── */
+.company-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.company-table-header {
+  display: grid;
+  grid-template-columns: 140px 1fr 90px 90px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.company-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 90px 90px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  transition: background 0.1s;
+}
+.company-row:last-child { border-bottom: none; }
+.company-row:hover { background: var(--surface2); }
+.company-name { font-weight: 500; font-size: 14px; }
+.company-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.company-bar-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.company-bar-fill { height: 100%; border-radius: 3px; }
+.company-stat { font-family: var(--font-mono); font-size: 12px; text-align: right; }
+.stat-fail { color: var(--fail); }
+.stat-pass { color: var(--pass); }
+.stat-warn { color: var(--warn); }
+
+/* ── EMPTY / LOADING ── */
+.state-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 48px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.state-box.loading { color: var(--muted); font-family: var(--font-mono); font-size: 13px; }
+.spinner { width:36px;height:36px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.state-ok { color: var(--pass); font-size: 16px; font-weight: 500; }
+.state-ok .emoji { font-size: 32px; display: block; margin-bottom: 10px; }
+
+/* ── FOOTER ── */
+.footer {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer p { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.05em; }
+
+@media (max-width: 720px) {
+  .kpi-grid { grid-template-columns: repeat(2,1fr); }
+  .header { grid-template-columns: 1fr; }
+  .header-status { align-items: flex-start; }
+  .company-table-header, .company-row { grid-template-columns: 110px 1fr 70px; }
+  .company-table-header > :last-child, .company-row > :last-child { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-eyebrow">DTDC Cold Chain · Daily Report</div>
+    <div class="header-title">บันทึกอุณหภูมิก่อนโหลดสินค้า</div>
+    <div class="header-date" id="header-date">—</div>
+  </div>
+  <div class="header-status">
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      <span id="last-update">กำลังโหลด</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="field">
+    <div class="field-label">วันที่</div>
+    <input type="date" id="filter-date">
+  </div>
+  <div class="field">
+    <div class="field-label">บริษัท</div>
+    <select id="filter-company"><option value="">ทั้งหมด</option></select>
+  </div>
+  <div class="field">
+    <div class="field-label">สินค้า</div>
+    <select id="filter-product"><option value="">ทั้งหมด</option></select>
+  </div>
+</div>
+
+<div id="main-content">
+  <div class="state-box loading">
+    <div class="spinner"></div>
+    LOADING DATA...
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>DTDC COLD CHAIN INSPECTION SYSTEM · TEMPERATURE LOG v2</p>
+  <p id="footer-time">—</p>
+</div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMVZpLDw93Dgc316KlyZwXiLhaQ8z6h6cOX8Xrnjs9bXJClFqywussefttmal0jbbpJtMyzOPw0W4h/pub?gid=0&single=true&output=csv';
+
+let allData = [], COL = {};
+
+function detectColumns(h) {
+  h.forEach((v,i) => {
+    const n = v.trim();
+    if (n.includes('วันที่ตรวจ'))          COL.date = i;
+    if (n.includes('ทะเบียนรถ'))           COL.plate = i;
+    if (n.includes('ชื่อบริษัทรถ')||n.includes('ชื่อบริษัท')) COL.company = i;
+    if (n.includes('อุณหภูมิก่อนโหลดสินค้า')) COL.temp = i;
+    if (n.includes('ผลอุณหภูมิก่อนโหลด'))  COL.tempResult = i;
+    if (n.includes('สินค้าที่โหลด'))        COL.product = i;
+    if (n.includes('เวลาที่เริ่มตรวจ'))     COL.time = i;
+    if (n.includes('ชื่อผู้ตรวจ'))         COL.inspector = i;
+  });
+}
+
+function parseCSV(text) {
+  return text.split('\n').filter(l=>l.trim()).map(line => {
+    const row = []; let cur = '', q = false;
+    for (const c of line) {
+      if (c==='"') q=!q;
+      else if (c===',' && !q) { row.push(cur.trim()); cur=''; }
+      else cur+=c;
+    }
+    row.push(cur.trim()); return row;
+  });
+}
+
+function today() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+}
+
+function matchDate(rowDate, filter) {
+  if (!filter) return true;
+  if (!rowDate) return false;
+  const [fd,fm,fy] = [filter.split('-')[2], filter.split('-')[1], filter.split('-')[0]].map(Number);
+  const parts = rowDate.split('/');
+  if (parts.length !== 3) return false;
+  let ry = parseInt(parts[2]);
+  if (ry > 2500) ry -= 543;
+  return parseInt(parts[0])===fd && parseInt(parts[1])===fm && ry===parseInt(filter.split('-')[0]);
+}
+
+function status(temp, result) {
+  const t = parseFloat(temp);
+  if (isNaN(t)) return 'pass';
+  if (result?.includes('ไม่ผ่าน') || t > 5) return 'fail';
+  if (result?.includes('แจ้งเตือน') || t > 4) return 'warn';
+  return 'pass';
+}
+
+function fmtDate(str) {
+  if (!str) return '—';
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const p = str.split('/');
+  if (p.length!==3) return str;
+  return `${parseInt(p[0])} ${months[parseInt(p[1])-1]} ${p[2]}`;
+}
+
+function card(row) {
+  const plate   = row[COL.plate]||'—';
+  const company = row[COL.company]||'—';
+  const temp    = row[COL.temp]||'—';
+  const result  = row[COL.tempResult]||'';
+  const product = (row[COL.product]||'—').split(',')[0].trim();
+  const time    = row[COL.time]||'';
+  const date    = fmtDate(row[COL.date]||'');
+  const s       = status(temp, result);
+  const t       = parseFloat(temp);
+  const pct     = isNaN(t) ? 0 : Math.min(100, Math.max(0, (t+5)/20*100));
+  const refPct  = (4+5)/20*100;
+  const barClr  = s==='fail'?'var(--fail)':'var(--warn)';
+  const tag     = s==='fail'
+    ? '<span class="status-tag tag-fail">● FAIL</span>'
+    : '<span class="status-tag tag-warn">● WARN</span>';
+
+  return `<div class="vehicle-card card-${s}">
+    <div class="card-row1">
+      <span class="plate-num">${plate}</span>
+      ${tag}
+    </div>
+    <div class="temp-reading temp-${s}">${isNaN(t)?'—':t.toFixed(1)}<sup>°C</sup></div>
+    <div class="card-meta">
+      <div class="meta-row"><span class="meta-key">บริษัท</span><span class="meta-val">${company}</span></div>
+      <div class="meta-row"><span class="meta-key">สินค้า</span><span class="meta-val">${product}</span></div>
+      <div class="meta-row"><span class="meta-key">วัน/เวลา</span><span class="meta-val">${date}${time?' · '+time:''}</span></div>
+    </div>
+    <div class="gauge">
+      <div class="gauge-fill" style="width:${pct}%;background:${barClr}"></div>
+      <div class="gauge-ref" style="left:${refPct}%">
+        <span class="gauge-ref-label">4°C</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function render() {
+  const date    = document.getElementById('filter-date').value;
+  const company = document.getElementById('filter-company').value;
+  const product = document.getElementById('filter-product').value;
+
+  const rows = allData.filter(r => {
+    if (!r[COL.plate]) return false;
+    if (date    && !matchDate(r[COL.date], date)) return false;
+    if (company && r[COL.company] !== company)    return false;
+    if (product && !(r[COL.product]||'').includes(product)) return false;
+    return true;
+  });
+
+  const problems = rows.filter(r=>status(r[COL.temp],r[COL.tempResult])!=='pass')
+    .sort((a,b)=>parseFloat(b[COL.temp])-parseFloat(a[COL.temp]));
+  const passed   = rows.filter(r=>status(r[COL.temp],r[COL.tempResult])==='pass');
+  const temps    = rows.map(r=>parseFloat(r[COL.temp])).filter(t=>!isNaN(t));
+  const avgTemp  = temps.length ? (temps.reduce((a,b)=>a+b)/temps.length).toFixed(1) : '—';
+  const total    = rows.length;
+
+  // Update header date
+  const dispDate = date
+    ? new Date(date).toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+    : 'ทุกวัน';
+  document.getElementById('header-date').textContent = dispDate;
+
+  // Alert banner
+  let alertHtml;
+  if (!total) {
+    alertHtml = `<div class="alert-banner alert-ok">
+      <div class="alert-icon">📭</div>
+      <div class="alert-body"><h3>ไม่พบข้อมูลวันนี้</h3><p>ยังไม่มีการบันทึกข้อมูลสำหรับวันที่เลือก</p></div>
+    </div>`;
+  } else if (problems.length === 0) {
+    alertHtml = `<div class="alert-banner alert-ok">
+      <div class="alert-icon">✅</div>
+      <div class="alert-body"><h3>ผ่านทั้งหมด — ไม่พบรถที่มีปัญหา</h3><p>รถทั้ง ${total} คัน อุณหภูมิอยู่ในเกณฑ์มาตรฐาน ≤ 4°C</p></div>
+    </div>`;
+  } else if (problems.some(r=>status(r[COL.temp],r[COL.tempResult])==='fail')) {
+    alertHtml = `<div class="alert-banner alert-fail">
+      <div class="alert-icon">🚨</div>
+      <div class="alert-body"><h3>พบรถที่อุณหภูมิเกินมาตรฐาน — ต้องดำเนินการทันที</h3><p>พบปัญหา ${problems.length} รายการ จากทั้งหมด ${total} คัน</p></div>
+    </div>`;
+  } else {
+    alertHtml = `<div class="alert-banner alert-warn">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-body"><h3>พบรถที่อุณหภูมิใกล้เกินเกณฑ์ — ต้องติดตาม</h3><p>พบแจ้งเตือน ${problems.length} รายการ จากทั้งหมด ${total} คัน</p></div>
+    </div>`;
+  }
+
+  // KPI
+  const kpiHtml = `<div class="kpi-grid">
+    <div class="kpi-card" style="--kpi-color:var(--accent)">
+      <div class="kpi-label">รถที่ตรวจ</div>
+      <div class="kpi-value">${total}<span class="kpi-unit">คัน</span></div>
+      <div class="kpi-sub">ทั้งหมดวันนี้</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--fail)">
+      <div class="kpi-label">ไม่ผ่าน / แจ้งเตือน</div>
+      <div class="kpi-value">${problems.length}<span class="kpi-unit">คัน</span></div>
+      <div class="kpi-sub">${total>0?Math.round(problems.length/total*100):0}% ของวันนี้</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--pass)">
+      <div class="kpi-label">ผ่าน (≤ 4°C)</div>
+      <div class="kpi-value">${passed.length}<span class="kpi-unit">คัน</span></div>
+      <div class="kpi-sub">${total>0?Math.round(passed.length/total*100):0}% ของวันนี้</div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:var(--warn)">
+      <div class="kpi-label">เฉลี่ยอุณหภูมิ</div>
+      <div class="kpi-value">${avgTemp}<span class="kpi-unit">°C</span></div>
+      <div class="kpi-sub">มาตรฐาน ≤ 4.0°C</div>
+    </div>
+  </div>`;
+
+  // Problem cards
+  let problemsHtml = '';
+  if (problems.length > 0) {
+    problemsHtml = `
+      <div class="section-header">
+        <h2>รถที่มีปัญหา</h2>
+        <span class="count count-fail">${problems.length} รายการ</span>
+      </div>
+      <div class="vehicle-grid">${problems.map(card).join('')}</div>`;
+  }
+
+  // Pass block
+  let passHtml = '';
+  if (passed.length > 0) {
+    passHtml = `
+      <div class="section-header">
+        <h2>รถที่ผ่าน</h2>
+        <span class="count count-pass">${passed.length} รายการ</span>
+      </div>
+      <div class="pass-summary">
+        <div class="pass-icon">✅</div>
+        <div class="pass-text">
+          <h3>ผ่านการตรวจ ${passed.length} คัน — อุณหภูมิปกติทั้งหมด</h3>
+          <p>TEMPERATURE WITHIN STANDARD ≤ 4.0°C · NO ACTION REQUIRED</p>
+        </div>
+      </div>`;
+  }
+
+  // Company breakdown
+  const coMap = {};
+  rows.forEach(r => {
+    const co = r[COL.company]||'ไม่ระบุ';
+    if (!coMap[co]) coMap[co] = {fail:0,warn:0,pass:0,total:0};
+    coMap[co][status(r[COL.temp],r[COL.tempResult])]++;
+    coMap[co].total++;
+  });
+  const maxCo = Math.max(...Object.values(coMap).map(v=>v.total),1);
+  const coRows = Object.entries(coMap)
+    .sort((a,b)=>b[1].total-a[1].total)
+    .map(([co,v]) => {
+      const pct = v.total/maxCo*100;
+      const hasIssue = v.fail+v.warn > 0;
+      const fillClr = v.fail>0 ? 'var(--fail)' : v.warn>0 ? 'var(--warn)' : 'var(--pass)';
+      return `<div class="company-row">
+        <div class="company-name">${co}</div>
+        <div class="company-bar-wrap">
+          <div class="company-bar-track">
+            <div class="company-bar-fill" style="width:${pct}%;background:${fillClr}"></div>
+          </div>
+        </div>
+        <div class="company-stat ${hasIssue?'stat-fail':'stat-pass'}">${hasIssue?v.fail+v.warn+' ❌':v.total+' ✓'}</div>
+        <div class="company-stat" style="color:var(--muted)">${v.total} คัน</div>
+      </div>`;
+    }).join('');
+
+  const coHtml = total > 0 ? `
+    <div class="section-header"><h2>สรุปแต่ละบริษัท</h2></div>
+    <div class="company-section">
+      <div class="company-table-header">
+        <div>บริษัท</div><div>สัดส่วน</div><div>ผล</div><div>จำนวน</div>
+      </div>
+      ${coRows}
+    </div>` : '';
+
+  document.getElementById('main-content').innerHTML =
+    alertHtml + kpiHtml + problemsHtml + passHtml + coHtml;
+}
+
+async function load() {
+  try {
+    const res  = await fetch(CSV_URL);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if (rows.length < 2) return;
+    detectColumns(rows[0]);
+    allData = rows.slice(1).filter(r => r.length > 3);
+
+    const cos = [...new Set(allData.map(r=>r[COL.company]).filter(Boolean))].sort();
+    const cs  = document.getElementById('filter-company');
+    if (cs.options.length === 1)
+      cos.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; cs.appendChild(o); });
+
+    const pros = [...new Set(allData.flatMap(r=>(r[COL.product]||'').split(',').map(p=>p.trim())).filter(Boolean))].sort();
+    const ps   = document.getElementById('filter-product');
+    if (ps.options.length === 1)
+      pros.forEach(p => { const o=document.createElement('option'); o.value=p; o.textContent=p; ps.appendChild(o); });
+
+    render();
+    const t = new Date().toLocaleTimeString('th-TH');
+    document.getElementById('last-update').textContent = `LIVE · ${t}`;
+    document.getElementById('footer-time').textContent = `LAST SYNC ${t}`;
+  } catch(e) {
+    document.getElementById('main-content').innerHTML =
+      `<div class="state-box"><p style="color:var(--fail);font-family:var(--font-mono)">ERROR · ${e.message}</p></div>`;
+  }
+}
+
+document.getElementById('filter-date').value = today();
+document.getElementById('filter-date').addEventListener('change', render);
+document.getElementById('filter-company').addEventListener('change', render);
+document.getElementById('filter-product').addEventListener('change', render);
+
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
