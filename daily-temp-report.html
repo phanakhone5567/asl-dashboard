@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>รายงานอุณหภูมิประจำวัน — DTDC Cold Chain</title>
-<style>
 
+<style>
 *{
   box-sizing:border-box;
   margin:0;
@@ -21,11 +21,12 @@ body{
   font-size:18px;
 }
 
+/* HEADER */
 .header{
   background:#1565C0;
-  border-radius:16px;
-  padding:20px 24px;
-  margin-bottom:18px;
+  border-radius:12px;
+  padding:18px 24px;
+  margin-bottom:16px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -33,13 +34,13 @@ body{
 
 .header-left h1{
   color:#fff;
-  font-size:30px;
-  font-weight:800;
+  font-size:26px;
+  font-weight:700;
 }
 
 .header-left p{
   color:#BBDEFB;
-  font-size:16px;
+  font-size:17px;
   margin-top:4px;
 }
 
@@ -55,162 +56,212 @@ body{
 
 .header-right .update{
   color:#BBDEFB;
-  font-size:14px;
+  font-size:15px;
   margin-top:4px;
 }
 
+/* FILTER */
 .filters{
   display:flex;
-  gap:12px;
-  margin-bottom:18px;
+  gap:10px;
+  margin-bottom:16px;
   flex-wrap:wrap;
   background:#fff;
-  border-radius:14px;
-  padding:16px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  border-radius:10px;
+  padding:14px 16px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
 }
 
 .filter-group{
   display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:5px;
 }
 
 .filter-label{
-  font-size:14px;
+  font-size:15px;
   color:#546E7A;
-  font-weight:700;
+  font-weight:600;
 }
 
 select,
 input[type="date"]{
   background:#F8FAFC;
-  border:2px solid #B0BEC5;
-  border-radius:10px;
+  border:1.5px solid #B0BEC5;
+  border-radius:8px;
   color:#1A2B3C;
-  padding:12px 16px;
-  font-size:16px;
-  min-width:180px;
+  padding:10px 16px;
+  font-size:17px;
+  font-family:inherit;
+  cursor:pointer;
+  min-width:170px;
 }
 
+select:focus,
+input[type="date"]:focus{
+  outline:none;
+  border-color:#1565C0;
+}
+
+/* KPI */
 .kpi-row{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:12px;
+  gap:10px;
   margin-bottom:20px;
 }
 
 .kpi{
-  border-radius:16px;
-  padding:20px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.10);
+  border-radius:12px;
+  padding:16px 18px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.10);
 }
 
 .kpi-label{
   font-size:16px;
-  margin-bottom:10px;
-  font-weight:700;
+  margin-bottom:8px;
+  font-weight:600;
 }
 
 .kpi-value{
-  font-size:48px;
-  font-weight:800;
+  font-size:46px;
+  font-weight:700;
   line-height:1;
 }
 
 .kpi-sub{
-  font-size:14px;
-  margin-top:8px;
+  font-size:15px;
+  margin-top:6px;
 }
 
 .kpi-total{
   background:#1565C0;
+}
+
+.kpi-total .kpi-label,
+.kpi-total .kpi-sub{
+  color:#BBDEFB;
+}
+
+.kpi-total .kpi-value{
   color:#fff;
 }
 
 .kpi-pass{
   background:#2E7D32;
+}
+
+.kpi-pass .kpi-label,
+.kpi-pass .kpi-sub{
+  color:#C8E6C9;
+}
+
+.kpi-pass .kpi-value{
   color:#fff;
 }
 
 .kpi-fail{
   background:#C62828;
+}
+
+.kpi-fail .kpi-label,
+.kpi-fail .kpi-sub{
+  color:#FFCDD2;
+}
+
+.kpi-fail .kpi-value{
   color:#fff;
 }
 
 .kpi-avg{
   background:#37474F;
+}
+
+.kpi-avg .kpi-label,
+.kpi-avg .kpi-sub{
+  color:#B0BEC5;
+}
+
+.kpi-avg .kpi-value{
   color:#fff;
 }
 
+/* SECTION */
 .section-title{
   font-size:22px;
-  font-weight:800;
-  margin-bottom:14px;
-  padding:12px 16px;
-  border-radius:10px;
+  font-weight:700;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 16px;
+  border-radius:8px;
+}
+
+.section-title::after{
+  content:'';
+  flex:1;
+  height:2px;
+}
+
+.section-problem{
   background:#FFEBEE;
   color:#B71C1C;
 }
 
+.section-problem::after{
+  background:#EF9A9A;
+}
+
+/* CARDS */
 .cards-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-  gap:16px;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:14px;
   margin-bottom:20px;
 }
 
 .card{
-  border-radius:18px;
-  padding:20px;
-  border-left:8px solid;
+  border-radius:12px;
+  padding:18px;
+  border-left:6px solid;
+  box-shadow:0 2px 10px rgba(0,0,0,0.10);
   background:#fff;
-  box-shadow:0 4px 14px rgba(0,0,0,0.10);
+  transition:transform .15s,box-shadow .15s;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 6px 20px rgba(0,0,0,0.15);
 }
 
 .card-fail{
   border-left-color:#C62828;
-  background:#fff5f5;
-  animation:pulseDanger 1.8s infinite;
-  box-shadow:
-    0 0 0 rgba(239,83,80,.4),
-    0 0 18px rgba(239,83,80,.45);
 }
 
 .card-warn{
-  border-left-color:#FF9800;
+  border-left-color:#E65100;
 }
 
-@keyframes pulseDanger{
-
-  0%{
-    transform:scale(1);
-  }
-
-  50%{
-    transform:scale(1.01);
-  }
-
-  100%{
-    transform:scale(1);
-  }
-
+.card-pass{
+  border-left-color:#2E7D32;
 }
 
 .card-top{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:14px;
+  margin-bottom:10px;
 }
 
 .plate{
-  font-size:28px;
-  font-weight:800;
+  font-size:24px;
+  font-weight:700;
+  color:#1A2B3C;
 }
 
 .badge{
-  padding:8px 14px;
+  padding:5px 14px;
   border-radius:20px;
   font-size:14px;
   font-weight:700;
@@ -219,22 +270,26 @@ input[type="date"]{
 .badge-fail{
   background:#FFEBEE;
   color:#B71C1C;
+  border:1.5px solid #EF9A9A;
 }
 
 .badge-warn{
   background:#FFF3E0;
   color:#E65100;
+  border:1.5px solid #FFCC80;
 }
 
 .badge-pass{
   background:#E8F5E9;
   color:#2E7D32;
+  border:1.5px solid #A5D6A7;
 }
 
 .temp-display{
-  font-size:72px;
-  font-weight:900;
-  margin-bottom:8px;
+  font-size:56px;
+  font-weight:800;
+  margin-bottom:6px;
+  line-height:1;
 }
 
 .temp-fail{
@@ -242,7 +297,7 @@ input[type="date"]{
 }
 
 .temp-warn{
-  color:#FF9800;
+  color:#E65100;
 }
 
 .temp-pass{
@@ -252,127 +307,189 @@ input[type="date"]{
 .card-meta{
   font-size:16px;
   color:#546E7A;
-  line-height:2;
+  margin-bottom:12px;
+  line-height:1.9;
 }
 
+.card-meta span{
+  display:block;
+}
+
+/* MINI BAR */
+.mini-bar-wrap{
+  position:relative;
+  height:10px;
+  background:#ECEFF1;
+  border-radius:5px;
+  overflow:visible;
+  margin-top:8px;
+}
+
+.mini-bar-fill{
+  height:100%;
+  border-radius:5px;
+}
+
+.mini-bar-ref{
+  position:absolute;
+  top:-8px;
+  bottom:-8px;
+  width:2.5px;
+  background:#1565C0;
+}
+
+.mini-bar-ref-label{
+  position:absolute;
+  top:-22px;
+  left:4px;
+  font-size:11px;
+  color:#1565C0;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+/* SUMMARY */
 .summary-box{
   background:#fff;
-  border-radius:18px;
-  padding:20px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+  border:1.5px solid #B0BEC5;
+  border-radius:12px;
+  padding:18px 20px;
+  margin-bottom:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
 }
 
 .summary-title{
-  font-size:22px;
-  font-weight:800;
-  margin-bottom:18px;
+  font-size:20px;
+  font-weight:700;
+  color:#1A2B3C;
+  margin-bottom:14px;
 }
 
 .sum-row{
   display:flex;
   align-items:center;
   gap:12px;
-  margin-bottom:14px;
+  margin-bottom:10px;
 }
 
 .sum-label{
-  width:140px;
-  font-weight:700;
+  font-size:16px;
+  color:#37474F;
+  width:120px;
+  flex-shrink:0;
+  font-weight:600;
 }
 
 .sum-bar-track{
   flex:1;
-  height:24px;
+  height:20px;
   background:#ECEFF1;
-  border-radius:14px;
+  border-radius:10px;
   overflow:hidden;
 }
 
+.sum-count{
+  font-size:15px;
+  width:130px;
+  text-align:right;
+  flex-shrink:0;
+  font-weight:600;
+}
+
+/* EMPTY */
 .empty-state{
   text-align:center;
   padding:40px;
-  font-size:22px;
-  font-weight:700;
-  background:#E8F5E9;
-  border-radius:16px;
   color:#2E7D32;
+  font-size:20px;
+  font-weight:600;
+  background:#E8F5E9;
+  border-radius:12px;
+  border:2px solid #A5D6A7;
+  margin-bottom:20px;
 }
 
+/* LOADING */
 .loading{
   text-align:center;
   padding:60px;
+  color:#546E7A;
   font-size:20px;
 }
 
+.spinner{
+  width:40px;
+  height:40px;
+  border:4px solid #B0BEC5;
+  border-top-color:#1565C0;
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+  margin:0 auto 16px;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+/* MOBILE */
 @media (max-width:700px){
 
-  body{
-    padding:10px;
-  }
-
-  .header{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:12px;
+  .kpi-row{
+    grid-template-columns:repeat(2,1fr);
   }
 
   .filters{
-    position:sticky;
-    top:0;
-    z-index:999;
-    background:#ffffffee;
-    backdrop-filter:blur(10px);
+    flex-direction:column;
   }
 
-  .filter-group{
-    width:100%;
-  }
-
-  select,
-  input[type="date"]{
-    width:100%;
-  }
-
-  .kpi-row{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .cards-grid{
-    grid-template-columns:1fr;
+  .kpi-value{
+    font-size:34px;
   }
 
 }
-
+</style>
 </head>
+
 <body>
+
 <div class="header">
+
   <div class="header-left">
     <h1>🌡️ รายงานอุณหภูมิประจำวัน</h1>
     <p>DTDC Cold Chain Inspection System</p>
   </div>
-<div class="header-right">
+
+  <div class="header-right">
     <div class="date" id="display-date">-</div>
     <div class="update" id="last-update">กำลังโหลด...</div>
   </div>
+
 </div>
+
 <div class="filters">
-<div class="filter-group">
+
+  <div class="filter-group">
     <div class="filter-label">วันที่ตรวจ</div>
     <input type="date" id="filter-date">
   </div>
-<div class="filter-group">
+
+  <div class="filter-group">
     <div class="filter-label">บริษัทรถ</div>
     <select id="filter-company">
       <option value="">ทั้งหมด</option>
     </select>
   </div>
-<div class="filter-group">
+
+  <div class="filter-group">
     <div class="filter-label">สินค้าที่โหลด</div>
     <select id="filter-product">
       <option value="">ทั้งหมด</option>
     </select>
   </div>
-<div class="filter-group">
+
+  <div class="filter-group">
     <div class="filter-label">สถานะ</div>
     <select id="filter-status">
       <option value="">ทั้งหมด</option>
@@ -381,32 +498,40 @@ input[type="date"]{
       <option value="fail">ไม่ผ่าน</option>
     </select>
   </div>
+
 </div>
+
 <div id="main-content">
-<div class="loading">
+  <div class="loading">
+    <div class="spinner"></div>
     กำลังโหลดข้อมูล...
   </div>
 </div>
+
 <script>
 
-const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vTMVZpLDw93Dgc316KlyZwXiLhaQ8z6h6cOX8Xrnjs9bXJClFqywussefttmal0jbbpJtMyzOPw0W4h/pub?gid=0&single=true&output=csv';
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMVZpLDw93Dgc316KlyZwXiLhaQ8z6h6cOX8Xrnjs9bXJClFqywussefttmal0jbbpJtMyzOPw0W4h/pub?gid=0&single=true&output=csv';
 
-let allData=[];
-let headers=[];
-let COL={};
+let allData = [];
+let headers = [];
+
+let COL = {};
 
 function detectColumns(headers){
 
   headers.forEach((h,i)=>{
 
-    const name=h.trim();
+    const name = h.trim();
 
-    if(name.includes('วันที่ตรวจ')) COL.date=i;
-    if(name.includes('ทะเบียนรถ')) COL.plate=i;
-    if(name.includes('ชื่อบริษัทรถ')||name.includes('ชื่อบริษัท')) COL.company=i;
-    if(name.includes('อุณหภูมิก่อนโหลดสินค้า')) COL.temp=i;
-    if(name.includes('ผลอุณหภูมิก่อนโหลด')) COL.tempResult=i;
-    if(name.includes('สินค้าที่โหลด')) COL.product=i;
+    if(name.includes('วันที่ตรวจ')) COL.date = i;
+    if(name.includes('ทะเบียนรถ')) COL.plate = i;
+    if(name.includes('ชื่อบริษัทรถ') || name.includes('ชื่อบริษัท')) COL.company = i;
+    if(name.includes('อุณหภูมิก่อนโหลดสินค้า')) COL.temp = i;
+    if(name.includes('ผลอุณหภูมิก่อนโหลด')) COL.tempResult = i;
+    if(name.includes('สินค้าที่โหลด')) COL.product = i;
+    if(name.includes('เวลาที่เริ่มตรวจ')) COL.time = i;
+    if(name.includes('ชื่อผู้ตรวจ')) COL.inspector = i;
+    if(name.includes('ผลการตรวจโดยรวม')) COL.overallResult = i;
 
   });
 
@@ -414,33 +539,38 @@ function detectColumns(headers){
 
 function parseCSV(text){
 
-  const lines=text.split('\n').filter(l=>l.trim());
-  const result=[];
+  const lines = text.split('\n').filter(l => l.trim());
+
+  const result = [];
 
   for(let i=0;i<lines.length;i++){
 
-    const row=[];
-    let current='';
-    let inQuotes=false;
+    const row = [];
+
+    let current = '';
+    let inQuotes = false;
 
     for(let c=0;c<lines[i].length;c++){
 
-      const char=lines[i][c];
+      const char = lines[i][c];
 
-      if(char==='"'){
-        inQuotes=!inQuotes;
+      if(char === '"'){
+        inQuotes = !inQuotes;
       }
-      else if(char===','&&!inQuotes){
+
+      else if(char === ',' && !inQuotes){
         row.push(current.trim());
-        current='';
+        current = '';
       }
+
       else{
-        current+=char;
+        current += char;
       }
 
     }
 
     row.push(current.trim());
+
     result.push(row);
 
   }
@@ -451,11 +581,11 @@ function parseCSV(text){
 
 function getTodayString(){
 
-  const now=new Date();
+  const now = new Date();
 
-  const d=String(now.getDate()).padStart(2,'0');
-  const m=String(now.getMonth()+1).padStart(2,'0');
-  const y=now.getFullYear();
+  const d = String(now.getDate()).padStart(2,'0');
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const y = now.getFullYear();
 
   return `${y}-${m}-${d}`;
 
@@ -468,24 +598,26 @@ function matchDate(rowDate,filterDate){
 
   try{
 
-    const fp=filterDate.split('-');
+    const fp = filterDate.split('-');
 
-    const fy=parseInt(fp[0]);
-    const fm=parseInt(fp[1]);
-    const fd=parseInt(fp[2]);
+    const fy = parseInt(fp[0]);
+    const fm = parseInt(fp[1]);
+    const fd = parseInt(fp[2]);
 
-    const parts=rowDate.split('/');
+    const parts = rowDate.split('/');
 
-    if(parts.length===3){
+    if(parts.length === 3){
 
-      const rd=parseInt(parts[0]);
-      const rm=parseInt(parts[1]);
+      const rd = parseInt(parts[0]);
+      const rm = parseInt(parts[1]);
 
-      let ry=parseInt(parts[2]);
+      let ry = parseInt(parts[2]);
 
-      if(ry>2500) ry=ry-543;
+      if(ry > 2500){
+        ry = ry - 543;
+      }
 
-      return rd===fd&&rm===fm&&ry===fy;
+      return rd === fd && rm === fm && ry === fy;
 
     }
 
@@ -497,17 +629,17 @@ function matchDate(rowDate,filterDate){
 
 function getTempColor(temp,result){
 
-  const t=parseFloat(temp);
+  const t = parseFloat(temp);
 
   if(isNaN(t)) return 'pass';
 
-  if(result&&result.includes('ไม่ผ่าน')) return 'fail';
+  if(result && result.includes('ไม่ผ่าน')) return 'fail';
 
-  if(result&&result.includes('แจ้งเตือน')) return 'warn';
+  if(result && result.includes('แจ้งเตือน')) return 'warn';
 
-  if(t>5) return 'fail';
+  if(t > 5) return 'fail';
 
-  if(t>4) return 'warn';
+  if(t > 4) return 'warn';
 
   return 'pass';
 
@@ -515,62 +647,94 @@ function getTempColor(temp,result){
 
 function buildCard(row){
 
-  const plate=row[COL.plate]||'-';
-  const company=row[COL.company]||'-';
-  const temp=row[COL.temp]||'-';
-  const product=row[COL.product]||'-';
+  const plate = row[COL.plate] || '-';
+  const company = row[COL.company] || '-';
+  const temp = row[COL.temp] || '-';
+  const tempResult = row[COL.tempResult] || '';
+  const product = row[COL.product] || '-';
+  const time = row[COL.time] || '';
 
-  const status=getTempColor(temp,row[COL.tempResult]);
+  const status = getTempColor(temp,tempResult);
 
-  const tempNum=parseFloat(temp);
+  const tempNum = parseFloat(temp);
 
-  const badgeText=
-    status==='fail'
-      ? '❌ ไม่ผ่าน'
-      : status==='warn'
+  const pct = isNaN(tempNum)
+    ? 0
+    : Math.min(100,Math.max(0,(tempNum + 5) / 25 * 100));
+
+  const refPct = Math.min(100,Math.max(0,(4 + 5) / 25 * 100));
+
+  const barColor =
+    status === 'fail'
+      ? '#EF5350'
+      : status === 'warn'
+      ? '#FF9800'
+      : '#4CAF50';
+
+  const tempClass = `temp-${status}`;
+  const cardClass = `card card-${status}`;
+  const badgeClass = `badge badge-${status}`;
+
+  const badgeText =
+    status === 'fail'
+      ? '⚠️ ไม่ผ่าน'
+      : status === 'warn'
       ? '⚠️ แจ้งเตือน'
       : '✅ ผ่าน';
 
   return `
-
-    <div class="card card-${status}">
+    <div class="${cardClass}">
 
       <div class="card-top">
+        <span class="plate">${plate}</span>
+        <span class="${badgeClass}">${badgeText}</span>
+      </div>
 
-        <div class="plate">${plate}</div>
+      <div class="temp-display ${tempClass}">
+        ${isNaN(tempNum) ? '-' : tempNum.toFixed(1)}°C
+      </div>
 
-        <div class="badge badge-${status}">
-          ${badgeText}
+      <div class="card-meta">
+        <span>🏢 ${company}</span>
+        <span>📦 ${product.split(',')[0].trim()}</span>
+        ${time ? `<span>⏰ ${time}</span>` : ''}
+      </div>
+
+      <div class="mini-bar-wrap">
+
+        <div
+          class="mini-bar-fill"
+          style="width:${pct}%;background:${barColor}">
+        </div>
+
+        <div
+          class="mini-bar-ref"
+          style="left:${refPct}%">
+
+          <span class="mini-bar-ref-label">
+            4°C
+          </span>
+
         </div>
 
       </div>
 
-      <div class="temp-display temp-${status}">
-        ${isNaN(tempNum)?'-':tempNum.toFixed(1)}°C
-      </div>
-
-      <div class="card-meta">
-        🏢 ${company}<br>
-        📦 ${product}
-      </div>
-
     </div>
-
   `;
 
 }
 
 function buildSummary(filtered){
 
-  const companyMap={};
+  const companyMap = {};
 
-  filtered.forEach(row=>{
+  filtered.forEach(row => {
 
-    const co=row[COL.company]||'ไม่ระบุ';
+    const co = row[COL.company] || 'ไม่ระบุ';
 
     if(!companyMap[co]){
 
-      companyMap[co]={
+      companyMap[co] = {
         fail:0,
         warn:0,
         pass:0,
@@ -579,7 +743,7 @@ function buildSummary(filtered){
 
     }
 
-    const status=getTempColor(
+    const status = getTempColor(
       row[COL.temp],
       row[COL.tempResult]
     );
@@ -589,48 +753,63 @@ function buildSummary(filtered){
 
   });
 
-  const maxTotal=Math.max(
-    ...Object.values(companyMap).map(v=>v.total),
+  const maxTotal = Math.max(
+    ...Object.values(companyMap).map(v => v.total),
     1
   );
 
-  let html='';
+  let html = '';
 
-  Object.entries(companyMap).forEach(([co,v])=>{
+  Object.entries(companyMap)
+    .sort((a,b)=>b[1].total-a[1].total)
+    .forEach(([co,v])=>{
 
-    const failPct=v.fail/maxTotal*100;
-    const warnPct=v.warn/maxTotal*100;
-    const passPct=v.pass/maxTotal*100;
+      const failPct = v.fail / maxTotal * 100;
+      const warnPct = v.warn / maxTotal * 100;
+      const passPct = v.pass / maxTotal * 100;
 
-    html+=`
+      const statusText =
+        v.fail > 0
+          ? `<span style="color:#EF5350">${v.fail} ไม่ผ่าน</span>`
+          : v.warn > 0
+          ? `<span style="color:#FF9800">${v.warn} แจ้งเตือน</span>`
+          : `<span style="color:#4CAF50">ผ่านทั้งหมด</span>`;
 
-      <div class="sum-row">
+      html += `
+        <div class="sum-row">
 
-        <div class="sum-label">${co}</div>
+          <div class="sum-label">
+            ${co}
+          </div>
 
-        <div class="sum-bar-track">
+          <div class="sum-bar-track">
 
-          <div style="display:flex;height:100%">
+            <div style="display:flex;height:100%">
 
-            <div style="width:${failPct}%;background:#EF5350"></div>
+              ${v.fail > 0
+                ? `<div style="width:${failPct}%;background:#EF5350"></div>`
+                : ''}
 
-            <div style="width:${warnPct}%;background:#FF9800"></div>
+              ${v.warn > 0
+                ? `<div style="width:${warnPct}%;background:#FF9800"></div>`
+                : ''}
 
-            <div style="width:${passPct}%;background:#4CAF50"></div>
+              ${v.pass > 0
+                ? `<div style="width:${passPct}%;background:#4CAF50"></div>`
+                : ''}
+
+            </div>
 
           </div>
 
+          <div class="sum-count">
+            ${statusText} / ${v.total} คัน
+          </div>
+
         </div>
+      `;
 
-        <div style="width:100px;text-align:right;font-weight:700">
-          ${v.total} คัน
-        </div>
-
-      </div>
-
-    `;
-
-  });
+    });
 
   return html;
 
@@ -638,244 +817,202 @@ function buildSummary(filtered){
 
 function render(){
 
-  const filterDate=document.getElementById('filter-date').value;
-  const filterCompany=document.getElementById('filter-company').value;
-  const filterProduct=document.getElementById('filter-product').value;
-  const filterStatus=document.getElementById('filter-status').value;
+  const filterDate =
+    document.getElementById('filter-date').value;
 
-  let filtered=allData.filter(row=>{
+  const filterCompany =
+    document.getElementById('filter-company').value;
+
+  const filterProduct =
+    document.getElementById('filter-product').value;
+
+  const filterStatus =
+    document.getElementById('filter-status').value;
+
+  let filtered = allData.filter(row => {
 
     if(!row[COL.plate]) return false;
 
-    if(filterDate&&!matchDate(row[COL.date],filterDate)) return false;
+    if(filterDate &&
+      !matchDate(row[COL.date],filterDate)){
+      return false;
+    }
 
-    if(filterCompany&&row[COL.company]!==filterCompany) return false;
+    if(filterCompany &&
+      row[COL.company] !== filterCompany){
+      return false;
+    }
 
-    if(filterProduct&&!(row[COL.product]||'').includes(filterProduct)) return false;
+    if(filterProduct &&
+      !(row[COL.product] || '').includes(filterProduct)){
+      return false;
+    }
 
-    const status=getTempColor(row[COL.temp],row[COL.tempResult]);
+    const status = getTempColor(
+      row[COL.temp],
+      row[COL.tempResult]
+    );
 
-    if(filterStatus&&status!==filterStatus) return false;
+    if(filterStatus && status !== filterStatus){
+      return false;
+    }
 
     return true;
 
   });
 
-  const problems=filtered.filter(r=>{
+  const problems = filtered.filter(r => {
 
-    const s=getTempColor(r[COL.temp],r[COL.tempResult]);
+    const s = getTempColor(
+      r[COL.temp],
+      r[COL.tempResult]
+    );
 
-    return s==='fail'||s==='warn';
+    return s === 'fail' || s === 'warn';
 
   });
 
-  const passed=filtered.filter(r=>
-    getTempColor(r[COL.temp],r[COL.tempResult])==='pass'
+  const passed = filtered.filter(r =>
+
+    getTempColor(
+      r[COL.temp],
+      r[COL.tempResult]
+    ) === 'pass'
+
   );
 
-  const totalCount=filtered.length;
-  const passCount=passed.length;
-  const failCount=problems.length;
+  const totalCount = filtered.length;
+  const passCount = passed.length;
+  const failCount = problems.length;
 
-  const temps=filtered
-    .map(r=>parseFloat(r[COL.temp]))
-    .filter(t=>!isNaN(t));
+  const temps = filtered
+    .map(r => parseFloat(r[COL.temp]))
+    .filter(t => !isNaN(t));
 
-  const avgTemp=temps.length
+  const avgTemp = temps.length
     ? (temps.reduce((a,b)=>a+b,0)/temps.length).toFixed(1)
     : '-';
 
-  document.getElementById('display-date').textContent=`📅 ${filterDate||'ทุกวัน'}`;
+  const displayDate = filterDate
+    ? new Date(filterDate).toLocaleDateString(
+        'th-TH',
+        {
+          day:'numeric',
+          month:'short',
+          year:'numeric'
+        }
+      )
+    : 'ทุกวัน';
 
-  document.getElementById('last-update').textContent=
+  document.getElementById('display-date').textContent =
+    `📅 ${displayDate}`;
+
+  document.getElementById('last-update').textContent =
     `อัปเดต: ${new Date().toLocaleTimeString('th-TH')}`;
 
-  let html=`
-
+  let html = `
     <div class="kpi-row">
 
       <div class="kpi kpi-total">
         <div class="kpi-label">รถที่ตรวจ</div>
         <div class="kpi-value">${totalCount}</div>
+        <div class="kpi-sub">คัน</div>
       </div>
 
       <div class="kpi kpi-pass">
-        <div class="kpi-label">ผ่าน</div>
+        <div class="kpi-label">ผ่าน (≤4°C)</div>
         <div class="kpi-value">${passCount}</div>
+        <div class="kpi-sub">
+          ${totalCount > 0
+            ? Math.round(passCount/totalCount*100)
+            : 0}%
+        </div>
       </div>
 
       <div class="kpi kpi-fail">
         <div class="kpi-label">ไม่ผ่าน / แจ้งเตือน</div>
         <div class="kpi-value">${failCount}</div>
+        <div class="kpi-sub">
+          ${totalCount > 0
+            ? Math.round(failCount/totalCount*100)
+            : 0}%
+        </div>
       </div>
 
       <div class="kpi kpi-avg">
         <div class="kpi-label">เฉลี่ยอุณหภูมิ</div>
         <div class="kpi-value">${avgTemp}</div>
+        <div class="kpi-sub">°C</div>
       </div>
 
     </div>
-
   `;
 
-  const worstTruck=filtered
-    .filter(r=>
-      getTempColor(r[COL.temp],r[COL.tempResult])==='fail'
-    )
-    .sort((a,b)=>
-      parseFloat(b[COL.temp])-parseFloat(a[COL.temp])
-    )[0];
-
-  if(worstTruck){
-
-    html+=`
-
-      <div style="
-        background:linear-gradient(135deg,#C62828,#EF5350);
-        border-radius:18px;
-        padding:24px;
-        margin-bottom:20px;
-        color:#fff;
-      ">
-
-        <div style="font-size:18px;margin-bottom:10px;">
-          🔴 รถไม่ผ่านหนักสุดวันนี้
-        </div>
-
-        <div style="font-size:44px;font-weight:800;">
-          ${worstTruck[COL.plate]}
-        </div>
-
-        <div style="font-size:74px;font-weight:900;line-height:1;">
-          ${parseFloat(worstTruck[COL.temp]).toFixed(1)}°C
-        </div>
-
-      </div>
-
-    `;
-
-  }
-
-  html+=`
-
-    <div class="section-title">
+  html += `
+    <div class="section-title section-problem">
       ⚠️ รถที่มีปัญหา (${problems.length} คัน)
     </div>
-
   `;
 
-  if(problems.length===0){
+  if(problems.length === 0){
 
-    html+=`
-
+    html += `
       <div class="empty-state">
         ✅ ไม่มีรถที่มีปัญหาวันนี้
       </div>
-
     `;
 
   }else{
 
-    html+='<div class="cards-grid">';
+    html += `<div class="cards-grid">`;
 
-    problems.forEach(row=>{
-      html+=buildCard(row);
+    problems.forEach(row => {
+      html += buildCard(row);
     });
 
-    html+='</div>';
+    html += `</div>`;
 
   }
 
-  const companyStats={};
-
-  filtered.forEach(r=>{
-
-    const company=r[COL.company]||'ไม่ระบุ';
-
-    const status=getTempColor(
-      r[COL.temp],
-      r[COL.tempResult]
-    );
-
-    if(!companyStats[company]){
-      companyStats[company]={total:0,fail:0};
-    }
-
-    companyStats[company].total++;
-
-    if(status==='fail'){
-      companyStats[company].fail++;
-    }
-
-  });
-
-  const allFail=filtered.filter(r=>
-    getTempColor(r[COL.temp],r[COL.tempResult])==='fail'
-  ).length;
-
-  const overallRate=
-    totalCount>0
-      ? allFail/totalCount
-      : 0;
-
-  let insight='';
-
-  Object.entries(companyStats).forEach(([company,v])=>{
-
-    const rate=v.fail/v.total;
-
-    if(rate>overallRate&&v.fail>0){
-
-      const diff=Math.round(
-        ((rate-overallRate)*100)
-      );
-
-      insight+=`
-
-        <div style="margin-bottom:10px;">
-          🚨 วันนี้รถ <b>${company}</b>
-          มีอัตราไม่ผ่านสูงกว่าเฉลี่ย
-          <b>${diff}%</b>
-        </div>
-
-      `;
-
-    }
-
-  });
-
-  if(!insight){
-    insight='✅ วันนี้ทุกบริษัทมีอัตราการตรวจปกติ';
-  }
-
-  html+=`
-
+  html += `
     <div style="
-      background:linear-gradient(135deg,#1E293B,#334155);
-      color:#fff;
-      border-radius:18px;
-      padding:22px;
+      background:#E8F5E9;
+      border:2px solid #A5D6A7;
+      border-radius:12px;
+      padding:16px 20px;
       margin-bottom:20px;
+      display:flex;
+      align-items:center;
+      gap:16px
     ">
 
-      <div style="
-        font-size:22px;
-        font-weight:800;
-        margin-bottom:14px;
-      ">
-        🧠 AI วิเคราะห์แนวโน้มวันนี้
-      </div>
+      <div style="font-size:40px">✅</div>
 
-      <div style="line-height:2;font-size:18px;">
-        ${insight}
+      <div>
+
+        <div style="
+          font-size:22px;
+          font-weight:700;
+          color:#2E7D32
+        ">
+          รถที่ผ่านการตรวจ:
+          ${passed.length} คัน
+        </div>
+
+        <div style="
+          font-size:16px;
+          color:#388E3C;
+          margin-top:4px
+        ">
+          อุณหภูมิอยู่ในเกณฑ์ปกติ (≤ 4°C)
+        </div>
+
       </div>
 
     </div>
-
   `;
 
-  html+=`
-
+  html += `
     <div class="summary-box">
 
       <div class="summary-title">
@@ -885,10 +1022,9 @@ function render(){
       ${buildSummary(filtered)}
 
     </div>
-
   `;
 
-  document.getElementById('main-content').innerHTML=html;
+  document.getElementById('main-content').innerHTML = html;
 
 }
 
@@ -896,48 +1032,73 @@ async function loadData(){
 
   try{
 
-    const res=await fetch(CSV_URL);
-    const text=await res.text();
+    const res = await fetch(CSV_URL);
 
-    const rows=parseCSV(text);
+    const text = await res.text();
 
-    headers=rows[0];
+    const rows = parseCSV(text);
+
+    if(rows.length < 2){
+
+      document.getElementById('main-content').innerHTML =
+        '<div class="empty-state">ไม่พบข้อมูล</div>';
+
+      return;
+
+    }
+
+    headers = rows[0];
 
     detectColumns(headers);
 
-    allData=rows.slice(1);
+    allData = rows.slice(1)
+      .filter(r => r.length > 3);
 
-    const companies=[...new Set(
-      allData.map(r=>r[COL.company]).filter(Boolean)
-    )].sort();
+    /* COMPANY */
 
-    const companySelect=document.getElementById('filter-company');
+    const companies = [
+      ...new Set(
+        allData
+          .map(r => r[COL.company])
+          .filter(Boolean)
+      )
+    ].sort();
 
-    companies.forEach(c=>{
+    const companySelect =
+      document.getElementById('filter-company');
 
-      const opt=document.createElement('option');
-      opt.value=c;
-      opt.textContent=c;
+    companies.forEach(c => {
+
+      const opt = document.createElement('option');
+
+      opt.value = c;
+      opt.textContent = c;
 
       companySelect.appendChild(opt);
 
     });
 
-    const products=[...new Set(
-      allData.flatMap(r=>
-        (r[COL.product]||'')
-          .split(',')
-          .map(p=>p.trim())
-      ).filter(Boolean)
-    )].sort();
+    /* PRODUCT */
 
-    const productSelect=document.getElementById('filter-product');
+    const products = [
+      ...new Set(
+        allData.flatMap(r =>
+          (r[COL.product] || '')
+            .split(',')
+            .map(p => p.trim())
+        ).filter(Boolean)
+      )
+    ].sort();
 
-    products.forEach(p=>{
+    const productSelect =
+      document.getElementById('filter-product');
 
-      const opt=document.createElement('option');
-      opt.value=p;
-      opt.textContent=p;
+    products.forEach(p => {
+
+      const opt = document.createElement('option');
+
+      opt.value = p;
+      opt.textContent = p;
 
       productSelect.appendChild(opt);
 
@@ -947,15 +1108,19 @@ async function loadData(){
 
   }catch(e){
 
-    document.getElementById('main-content').innerHTML=`
+    document.getElementById('main-content').innerHTML = `
       <div class="empty-state">
         ❌ โหลดข้อมูลไม่ได้
+        <br>
+        <small>${e.message}</small>
       </div>
     `;
 
   }
 
 }
+
+/* EVENTS */
 
 document.getElementById('filter-date')
   .addEventListener('change',render);
@@ -969,11 +1134,18 @@ document.getElementById('filter-product')
 document.getElementById('filter-status')
   .addEventListener('change',render);
 
-document.getElementById('filter-date').value=getTodayString();
+/* DEFAULT DATE */
+
+document.getElementById('filter-date').value =
+  getTodayString();
+
+/* LOAD */
 
 loadData();
 
-setInterval(loadData,5*60*1000);
+setInterval(loadData,5 * 60 * 1000);
+
+</script>
 
 </body>
 </html>
