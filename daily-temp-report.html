@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>รายงานอุณหภูมิประจำวัน — DTDC Cold Chain</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Sawasdee:wght@400;700&display=swap');
 
@@ -13,62 +15,149 @@
   padding: 0;
 }
 
+:root {
+  --bg-primary: #F0F4F8;
+  --bg-secondary: #fff;
+  --text-primary: #1A2B3C;
+  --text-secondary: #546E7A;
+  --border-color: #E0E0E0;
+  --header-bg: #1565C0;
+  --header-text: #fff;
+}
+
+body.dark-mode {
+  --bg-primary: #1A1F2E;
+  --bg-secondary: #252D3D;
+  --text-primary: #E8EEF5;
+  --text-secondary: #A0A8B8;
+  --border-color: #3A4250;
+  --header-bg: #0D47A1;
+  --header-text: #fff;
+}
+
 body {
   font-family: 'Sawasdee', 'Phetsarath OT', 'Times New Roman', sans-serif;
-  background: #F0F4F8;
-  color: #1A2B3C;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   min-height: 100vh;
   padding: 16px;
   font-size: 18px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .header {
-  background: #1565C0;
+  background: var(--header-bg);
   border-radius: 16px;
   padding: 20px 24px;
   margin-bottom: 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .header-left h1 {
-  color: #fff;
+  color: var(--header-text);
   font-size: 30px;
   font-weight: 800;
 }
 
 .header-left p {
-  color: #BBDEFB;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 16px;
   margin-top: 4px;
 }
 
 .header-right {
-  text-align: right;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .header-right .date {
-  color: #fff;
+  color: var(--header-text);
   font-size: 22px;
   font-weight: 700;
+  font-family: 'Times New Roman', serif;
 }
 
 .header-right .update {
-  color: #BBDEFB;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 14px;
-  margin-top: 4px;
+}
+
+.theme-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: var(--header-text);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  transition: all 0.3s;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: all 0.3s;
+}
+
+.tab-btn.active {
+  background: #1565C0;
+  color: #fff;
+}
+
+.tab-btn:hover {
+  background: var(--border-color);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .filters {
   display: flex;
   gap: 12px;
-  margin-bottom: 18px;
   flex-wrap: wrap;
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  flex: 1;
 }
 
 .filter-group {
@@ -79,24 +168,73 @@ body {
 
 .filter-label {
   font-size: 14px;
-  color: #546E7A;
+  color: var(--text-secondary);
   font-weight: 700;
 }
 
 select,
-input[type="date"] {
-  background: #F8FAFC;
-  border: 2px solid #B0BEC5;
+input[type="date"],
+input[type="number"],
+input[type="text"],
+input[type="search"] {
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
   border-radius: 10px;
-  color: #1A2B3C;
+  color: var(--text-primary);
   padding: 12px 16px;
   font-size: 16px;
   min-width: 180px;
+  transition: border-color 0.3s;
+}
+
+select:focus,
+input:focus {
+  outline: none;
+  border-color: #1565C0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary {
+  background: #1565C0;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #0D47A1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
+}
+
+.btn-secondary {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background: #B0BEC5;
 }
 
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
   margin-bottom: 20px;
 }
@@ -105,6 +243,12 @@ input[type="date"] {
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.10);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.kpi:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .kpi-label {
@@ -117,32 +261,21 @@ input[type="date"] {
   font-size: 48px;
   font-weight: 800;
   line-height: 1;
+  font-family: 'Times New Roman', serif;
 }
 
 .kpi-sub {
   font-size: 14px;
   margin-top: 8px;
+  opacity: 0.8;
 }
 
-.kpi-total {
-  background: #1565C0;
-  color: #fff;
-}
-
-.kpi-pass {
-  background: #2E7D32;
-  color: #fff;
-}
-
-.kpi-fail {
-  background: #C62828;
-  color: #fff;
-}
-
-.kpi-avg {
-  background: #37474F;
-  color: #fff;
-}
+.kpi-total { background: linear-gradient(135deg, #1565C0, #0D47A1); color: #fff; }
+.kpi-pass { background: linear-gradient(135deg, #2E7D32, #1B5E20); color: #fff; }
+.kpi-fail { background: linear-gradient(135deg, #C62828, #B71C1C); color: #fff; }
+.kpi-avg { background: linear-gradient(135deg, #37474F, #263238); color: #fff; }
+.kpi-max { background: linear-gradient(135deg, #FF6F00, #E65100); color: #fff; }
+.kpi-min { background: linear-gradient(135deg, #0288D1, #0277BD); color: #fff; }
 
 .section-title {
   font-size: 22px;
@@ -165,37 +298,24 @@ input[type="date"] {
   border-radius: 18px;
   padding: 20px;
   border-left: 8px solid;
-  background: #fff;
+  background: var(--bg-secondary);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.card-fail {
-  border-left-color: #C62828;
-  background: #fff5f5;
-  animation: pulseDanger 1.8s infinite;
-  box-shadow:
-    0 0 0 rgba(239, 83, 80, .4),
-    0 0 18px rgba(239, 83, 80, .45);
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-.card-warn {
-  border-left-color: #FF9800;
-}
+.card-fail { border-left-color: #C62828; animation: pulseDanger 1.8s infinite; }
+.card-warn { border-left-color: #FF9800; }
+.card-pass { border-left-color: #2E7D32; }
 
 @keyframes pulseDanger {
-
-  0% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.01);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-
+  0% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
 }
 
 .card-top {
@@ -208,6 +328,7 @@ input[type="date"] {
 .plate {
   font-size: 28px;
   font-weight: 800;
+  font-family: 'Times New Roman', serif;
 }
 
 .badge {
@@ -217,50 +338,104 @@ input[type="date"] {
   font-weight: 700;
 }
 
-.badge-fail {
-  background: #FFEBEE;
-  color: #B71C1C;
-}
-
-.badge-warn {
-  background: #FFF3E0;
-  color: #E65100;
-}
-
-.badge-pass {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
+.badge-fail { background: #FFEBEE; color: #B71C1C; }
+.badge-warn { background: #FFF3E0; color: #E65100; }
+.badge-pass { background: #E8F5E9; color: #2E7D32; }
 
 .temp-display {
   font-size: 72px;
   font-weight: 900;
   margin-bottom: 8px;
+  font-family: 'Times New Roman', serif;
 }
 
-.temp-fail {
-  color: #C62828;
-}
-
-.temp-warn {
-  color: #FF9800;
-}
-
-.temp-pass {
-  color: #2E7D32;
-}
+.temp-fail { color: #C62828; }
+.temp-warn { color: #FF9800; }
+.temp-pass { color: #2E7D32; }
 
 .card-meta {
   font-size: 16px;
-  color: #546E7A;
+  color: var(--text-secondary);
   line-height: 2;
 }
 
-.summary-box {
-  background: #fff;
+.chart-container {
+  background: var(--bg-secondary);
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+  position: relative;
+  height: 400px;
+}
+
+.chart-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.company-ranking {
+  background: var(--bg-secondary);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  border-left: 4px solid #1565C0;
+}
+
+.ranking-medal {
+  font-size: 32px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.ranking-info {
+  flex: 1;
+}
+
+.ranking-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.ranking-stats {
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 16px;
+}
+
+.ranking-score {
+  font-size: 24px;
+  font-weight: 800;
+  font-family: 'Times New Roman', serif;
+  color: #1565C0;
+}
+
+.stars {
+  font-size: 18px;
+  color: #FFB300;
+}
+
+.summary-box {
+  background: var(--bg-secondary);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
 }
 
 .summary-title {
@@ -284,7 +459,7 @@ input[type="date"] {
 .sum-bar-track {
   flex: 1;
   height: 24px;
-  background: #ECEFF1;
+  background: var(--border-color);
   border-radius: 14px;
   overflow: hidden;
 }
@@ -305,43 +480,50 @@ input[type="date"] {
   font-size: 20px;
 }
 
+.insight-box {
+  background: linear-gradient(135deg, #1E293B, #334155);
+  color: #fff;
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.insight-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.insight-text {
+  line-height: 2;
+  font-size: 18px;
+}
+
+.trend-chart {
+  background: var(--bg-secondary);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+  position: relative;
+  height: 300px;
+}
+
 @media (max-width: 700px) {
-
-  body {
-    padding: 10px;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .filters {
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    background: #ffffffee;
-    backdrop-filter: blur(10px);
-  }
-
-  .filter-group {
-    width: 100%;
-  }
-
-  select,
-  input[type="date"] {
-    width: 100%;
-  }
-
-  .kpi-row {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .cards-grid {
-    grid-template-columns: 1fr;
-  }
-
+  body { padding: 10px; }
+  .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .header-right { width: 100%; justify-content: space-between; }
+  .toolbar { flex-direction: column; }
+  .filters { flex-direction: column; }
+  .filter-group { width: 100%; }
+  select, input { width: 100%; min-width: auto; }
+  .action-buttons { width: 100%; }
+  .btn { flex: 1; justify-content: center; }
+  .kpi-row { grid-template-columns: 1fr; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .chart-container { height: 300px; }
+  .tabs { flex-direction: column; }
+  .tab-btn { width: 100%; }
 }
 
 </style>
@@ -355,50 +537,144 @@ input[type="date"] {
   </div>
 
   <div class="header-right">
-    <div class="date" id="display-date">-</div>
-    <div class="update" id="last-update">กำลังโหลด...</div>
+    <div>
+      <div class="date" id="display-date">-</div>
+      <div class="update" id="last-update">กำลังโหลด...</div>
+    </div>
+    <button class="theme-toggle" id="theme-toggle">🌙 Dark Mode</button>
   </div>
 </div>
 
-<div class="filters">
-
-  <div class="filter-group">
-    <div class="filter-label">วันที่ตรวจ</div>
-    <input type="date" id="filter-date">
-  </div>
-
-  <div class="filter-group">
-    <div class="filter-label">บริษัทรถ</div>
-    <select id="filter-company">
-      <option value="">ทั้งหมด</option>
-    </select>
-  </div>
-
-  <div class="filter-group">
-    <div class="filter-label">สินค้าที่โหลด</div>
-    <select id="filter-product">
-      <option value="">ทั้งหมด</option>
-    </select>
-  </div>
-
-  <div class="filter-group">
-    <div class="filter-label">สถานะ</div>
-    <select id="filter-status">
-      <option value="">ทั้งหมด</option>
-      <option value="pass">ผ่าน</option>
-      <option value="warn">แจ้งเตือน</option>
-      <option value="fail">ไม่ผ่าน</option>
-    </select>
-  </div>
-
+<div class="tabs">
+  <button class="tab-btn active" data-tab="daily">📅 รายงานประจำวัน</button>
+  <button class="tab-btn" data-tab="company">📊 ประสิทธิภาพบริษัท</button>
+  <button class="tab-btn" data-tab="ranking">🏆 อันดับบริษัท</button>
+  <button class="tab-btn" data-tab="trend">📈 แนวโน้ม</button>
+  <button class="tab-btn" data-tab="search">🔍 ค้นหา</button>
 </div>
 
-<div id="main-content">
+<!-- TAB 1: DAILY REPORT -->
+<div id="daily" class="tab-content active">
+  <div class="toolbar">
+    <div class="filters">
+      <div class="filter-group">
+        <div class="filter-label">วันที่ตรวจ</div>
+        <input type="date" id="filter-date">
+      </div>
 
-  <div class="loading">
-    กำลังโหลดข้อมูล...
+      <div class="filter-group">
+        <div class="filter-label">บริษัทรถ</div>
+        <select id="filter-company">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">สินค้าที่โหลด</div>
+        <select id="filter-product">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">สถานะ</div>
+        <select id="filter-status">
+          <option value="">ทั้งหมด</option>
+          <option value="pass">ผ่าน</option>
+          <option value="warn">แจ้งเตือน</option>
+          <option value="fail">ไม่ผ่าน</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">ช่วงอุณหภูมิ (°C)</div>
+        <div style="display: flex; gap: 8px;">
+          <input type="number" id="filter-temp-min" placeholder="ต่ำสุด" step="0.1">
+          <input type="number" id="filter-temp-max" placeholder="สูงสุด" step="0.1">
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-primary" id="btn-export-pdf">📥 PDF</button>
+      <button class="btn btn-primary" id="btn-export-csv">📊 CSV</button>
+      <button class="btn btn-secondary" id="btn-refresh">🔄 Refresh</button>
+    </div>
   </div>
 
+  <div id="daily-content"></div>
+</div>
+
+<!-- TAB 2: COMPANY PERFORMANCE -->
+<div id="company" class="tab-content">
+  <div id="company-content"></div>
+</div>
+
+<!-- TAB 3: RANKING -->
+<div id="ranking" class="tab-content">
+  <div id="ranking-content"></div>
+</div>
+
+<!-- TAB 4: TREND ANALYSIS -->
+<div id="trend" class="tab-content">
+  <div class="toolbar">
+    <div class="filters">
+      <div class="filter-group">
+        <div class="filter-label">ช่วงวันที่</div>
+        <select id="trend-range">
+          <option value="7">7 วันที่ผ่านมา</option>
+          <option value="30">30 วันที่ผ่านมา</option>
+          <option value="90">90 วันที่ผ่านมา</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">บริษัท</div>
+        <select id="trend-company">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div id="trend-content"></div>
+</div>
+
+<!-- TAB 5: ADVANCED SEARCH -->
+<div id="search" class="tab-content">
+  <div class="toolbar">
+    <div class="filters">
+      <div class="filter-group">
+        <div class="filter-label">ค้นหาทะเบียนรถ</div>
+        <input type="search" id="search-plate" placeholder="เช่น กข0688">
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">ค้นหาบริษัท</div>
+        <input type="search" id="search-company" placeholder="เช่น DYNAMIC">
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">ค้นหาสินค้า</div>
+        <input type="search" id="search-product" placeholder="เช่น ไก่เนื้อ">
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">สถานะปัญหา</div>
+        <select id="search-status">
+          <option value="">ทั้งหมด</option>
+          <option value="fail">ไม่ผ่าน</option>
+          <option value="warn">แจ้งเตือน</option>
+          <option value="pass">ผ่าน</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-primary" id="btn-search">🔍 ค้นหา</button>
+      <button class="btn btn-secondary" id="btn-clear-search">🔄 ล้าง</button>
+    </div>
+  </div>
+  <div id="search-content"></div>
 </div>
 
 <script>
@@ -408,39 +684,55 @@ const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMVZpLDw93Dgc3
 let allData = [];
 let headers = [];
 let COL = {};
+let tempChart = null;
+let trendChart = null;
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'trend') renderTrendAnalysis();
+  });
+});
+
+// Dark Mode
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+  localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+  updateChartTheme();
+});
+
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark-mode');
+  document.getElementById('theme-toggle').textContent = '☀️ Light Mode';
+}
 
 function detectColumns(headers) {
-
   headers.forEach((h, i) => {
-
     const name = h.trim();
-
     if (name.includes('วันที่ตรวจ')) COL.date = i;
     if (name.includes('ทะเบียนรถ')) COL.plate = i;
     if (name.includes('ชื่อบริษัทรถ') || name.includes('ชื่อบริษัท')) COL.company = i;
     if (name.includes('อุณหภูมิก่อนโหลดสินค้า')) COL.temp = i;
     if (name.includes('ผลอุณหภูมิก่อนโหลด')) COL.tempResult = i;
     if (name.includes('สินค้าที่โหลด')) COL.product = i;
-
   });
-
 }
 
 function parseCSV(text) {
-
   const lines = text.split('\n').filter(l => l.trim());
   const result = [];
 
   for (let i = 0; i < lines.length; i++) {
-
     const row = [];
     let current = '';
     let inQuotes = false;
 
     for (let c = 0; c < lines[i].length; c++) {
-
       const char = lines[i][c];
-
       if (char === '"') {
         inQuotes = !inQuotes;
       }
@@ -451,91 +743,62 @@ function parseCSV(text) {
       else {
         current += char;
       }
-
     }
 
     row.push(current.trim());
     result.push(row);
-
   }
 
   return result;
-
 }
 
 function getTodayString() {
-
   const now = new Date();
-
   const d = String(now.getDate()).padStart(2, '0');
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const y = now.getFullYear();
-
   return `${y}-${m}-${d}`;
-
 }
 
 function matchDate(rowDate, filterDate) {
-
   if (!filterDate) return true;
   if (!rowDate) return false;
 
   try {
-
     const fp = filterDate.split('-');
-
     const fy = parseInt(fp[0]);
     const fm = parseInt(fp[1]);
     const fd = parseInt(fp[2]);
 
     const parts = rowDate.split('/');
-
     if (parts.length === 3) {
-
       const rd = parseInt(parts[0]);
       const rm = parseInt(parts[1]);
-
       let ry = parseInt(parts[2]);
-
       if (ry > 2500) ry = ry - 543;
-
       return rd === fd && rm === fm && ry === fy;
-
     }
-
   } catch (e) {}
 
   return false;
-
 }
 
 function getTempColor(temp, result) {
-
   const t = parseFloat(temp);
-
   if (isNaN(t)) return 'pass';
-
   if (result && result.includes('ไม่ผ่าน')) return 'fail';
-
   if (result && result.includes('แจ้งเตือน')) return 'warn';
-
   if (t > 5) return 'fail';
-
   if (t > 4) return 'warn';
-
   return 'pass';
-
 }
 
 function buildCard(row) {
-
   const plate = row[COL.plate] || '-';
   const company = row[COL.company] || '-';
   const temp = row[COL.temp] || '-';
   const product = row[COL.product] || '-';
-
   const status = getTempColor(temp, row[COL.tempResult]);
-
   const tempNum = parseFloat(temp);
 
   const badgeText =
@@ -546,141 +809,287 @@ function buildCard(row) {
       : '✅ ผ่าน';
 
   return `
-
     <div class="card card-${status}">
-
       <div class="card-top">
-
         <div class="plate">${plate}</div>
-
-        <div class="badge badge-${status}">
-          ${badgeText}
-        </div>
-
+        <div class="badge badge-${status}">${badgeText}</div>
       </div>
-
       <div class="temp-display temp-${status}">
         ${isNaN(tempNum) ? '-' : tempNum.toFixed(1)}°C
       </div>
-
       <div class="card-meta">
         🏢 ${company}<br>
         📦 ${product}
       </div>
-
     </div>
-
   `;
-
 }
 
-function buildSummary(filtered) {
-
-  const companyMap = {};
-
-  filtered.forEach(row => {
-
-    const co = row[COL.company] || 'ไม่ระบุ';
-
-    if (!companyMap[co]) {
-
-      companyMap[co] = {
-        fail: 0,
-        warn: 0,
-        pass: 0,
-        total: 0
-      };
-
+function getCompanyStats(data) {
+  const stats = {};
+  
+  data.forEach(row => {
+    const company = row[COL.company] || 'ไม่ระบุ';
+    if (!stats[company]) {
+      stats[company] = { total: 0, pass: 0, fail: 0, warn: 0, temps: [] };
     }
 
-    const status = getTempColor(
-      row[COL.temp],
-      row[COL.tempResult]
-    );
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    const temp = parseFloat(row[COL.temp]);
 
-    companyMap[co][status]++;
-    companyMap[co].total++;
-
+    stats[company].total++;
+    stats[company][status]++;
+    if (!isNaN(temp)) stats[company].temps.push(temp);
   });
 
-  const maxTotal = Math.max(
-    ...Object.values(companyMap).map(v => v.total),
-    1
-  );
-
-  let html = '';
-
-  Object.entries(companyMap).forEach(([co, v]) => {
-
-    const failPct = v.fail / maxTotal * 100;
-    const warnPct = v.warn / maxTotal * 100;
-    const passPct = v.pass / maxTotal * 100;
-
-    html += `
-
-      <div class="sum-row">
-
-        <div class="sum-label">${co}</div>
-
-        <div class="sum-bar-track">
-
-          <div style="display:flex;height:100%">
-
-            <div style="width:${failPct}%;background:#EF5350"></div>
-
-            <div style="width:${warnPct}%;background:#FF9800"></div>
-
-            <div style="width:${passPct}%;background:#4CAF50"></div>
-
-          </div>
-
-        </div>
-
-        <div style="width:100px;text-align:right;font-weight:700">
-          ${v.total} คัน
-        </div>
-
-      </div>
-
-    `;
-
-  });
-
-  return html;
-
+  return stats;
 }
 
-function render() {
+function calculateCompanyScore(stats) {
+  const scores = {};
+  
+  Object.entries(stats).forEach(([company, data]) => {
+    const passRate = (data.pass / data.total) * 100;
+    const avgTemp = data.temps.length ? (data.temps.reduce((a, b) => a + b) / data.temps.length) : 0;
+    const tempScore = Math.max(0, 100 - (avgTemp * 10));
+    
+    scores[company] = {
+      passRate,
+      tempScore,
+      total: (passRate * 0.6 + tempScore * 0.4),
+      stats: data
+    };
+  });
 
+  return scores;
+}
+
+function renderCompanyPerformance() {
+  const stats = getCompanyStats(allData);
+  const scores = calculateCompanyScore(stats);
+
+  let html = `<div class="summary-box">
+    <div class="summary-title">📊 ประสิทธิภาพแต่ละบริษัท</div>`;
+
+  Object.entries(scores)
+    .sort((a, b) => b[1].total - a[1].total)
+    .forEach(([company, data]) => {
+      const passRate = data.passRate.toFixed(1);
+      const failRate = (100 - data.passRate).toFixed(1);
+
+      html += `
+        <div class="sum-row">
+          <div class="sum-label">${company}</div>
+          <div class="sum-bar-track">
+            <div style="display:flex;height:100%">
+              <div style="width:${passRate}%;background:#4CAF50"></div>
+              <div style="width:${failRate}%;background:#EF5350"></div>
+            </div>
+          </div>
+          <div style="width:100px;text-align:right;font-weight:700;font-family:'Times New Roman',serif">
+            ${passRate}% ผ่าน
+          </div>
+        </div>
+      `;
+    });
+
+  html += '</div>';
+  document.getElementById('company-content').innerHTML = html;
+}
+
+function renderRanking() {
+  const stats = getCompanyStats(allData);
+  const scores = calculateCompanyScore(stats);
+
+  const sorted = Object.entries(scores)
+    .sort((a, b) => b[1].total - a[1].total);
+
+  const medals = ['🥇', '🥈', '🥉'];
+  let html = `<div class="company-ranking">
+    <div class="summary-title">🏆 อันดับบริษัท</div>`;
+
+  sorted.forEach(([company, data], index) => {
+    const medal = medals[index] || '📌';
+    const stars = Math.round(data.total / 20);
+    const starDisplay = '⭐'.repeat(Math.min(stars, 5));
+
+    html += `
+      <div class="ranking-item">
+        <div class="ranking-medal">${medal}</div>
+        <div class="ranking-info">
+          <div class="ranking-name">${company}</div>
+          <div class="ranking-stats">
+            <span>รถทั้งหมด: ${data.stats.total}</span>
+            <span>ผ่าน: ${data.stats.pass}</span>
+            <span>ไม่ผ่าน: ${data.stats.fail}</span>
+          </div>
+        </div>
+        <div class="ranking-score">${data.total.toFixed(1)}</div>
+        <div class="stars">${starDisplay}</div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  document.getElementById('ranking-content').innerHTML = html;
+}
+
+function renderTrendAnalysis() {
+  const range = parseInt(document.getElementById('trend-range').value) || 7;
+  const company = document.getElementById('trend-company').value;
+
+  const now = new Date();
+  const startDate = new Date(now.getTime() - range * 24 * 60 * 60 * 1000);
+
+  const trendData = {};
+  
+  allData.forEach(row => {
+    if (company && row[COL.company] !== company) return;
+
+    const dateStr = row[COL.date];
+    if (!dateStr) return;
+
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return;
+
+    let d = parseInt(parts[0]);
+    let m = parseInt(parts[1]);
+    let y = parseInt(parts[2]);
+    if (y > 2500) y = y - 543;
+
+    const rowDate = new Date(y, m - 1, d);
+    if (rowDate < startDate) return;
+
+    const key = rowDate.toISOString().split('T')[0];
+    if (!trendData[key]) {
+      trendData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+    }
+
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    const temp = parseFloat(row[COL.temp]);
+
+    trendData[key].total++;
+    trendData[key][status]++;
+    if (!isNaN(temp)) trendData[key].temps.push(temp);
+  });
+
+  const dates = Object.keys(trendData).sort();
+  const passRates = dates.map(d => (trendData[d].pass / trendData[d].total * 100).toFixed(1));
+  const avgTemps = dates.map(d => trendData[d].temps.length ? (trendData[d].temps.reduce((a, b) => a + b) / trendData[d].temps.length).toFixed(1) : 0);
+
+  let html = `<div class="trend-chart">
+    <div class="chart-title">📈 แนวโน้มการปรับปรุง</div>
+    <canvas id="trendChart"></canvas>
+  </div>`;
+
+  document.getElementById('trend-content').innerHTML = html;
+
+  setTimeout(() => {
+    const ctx = document.getElementById('trendChart');
+    if (!ctx) return;
+
+    if (trendChart) trendChart.destroy();
+
+    trendChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [{
+          label: 'อัตราการผ่าน (%)',
+          data: passRates,
+          borderColor: '#4CAF50',
+          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          tension: 0.4,
+          fill: true
+        }, {
+          label: 'อุณหภูมิเฉลี่ย (°C)',
+          data: avgTemps,
+          borderColor: '#FF9800',
+          backgroundColor: 'rgba(255, 152, 0, 0.1)',
+          tension: 0.4,
+          fill: true,
+          yAxisID: 'y1'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            title: { display: true, text: 'อัตราการผ่าน (%)' }
+          },
+          y1: {
+            type: 'linear',
+            position: 'right',
+            beginAtZero: true,
+            max: 10,
+            title: { display: true, text: 'อุณหภูมิ (°C)' }
+          }
+        }
+      }
+    });
+  }, 100);
+}
+
+function renderAdvancedSearch() {
+  const plateTerm = document.getElementById('search-plate').value.toLowerCase();
+  const companyTerm = document.getElementById('search-company').value.toLowerCase();
+  const productTerm = document.getElementById('search-product').value.toLowerCase();
+  const statusTerm = document.getElementById('search-status').value;
+
+  let filtered = allData.filter(row => {
+    if (plateTerm && !row[COL.plate]?.toLowerCase().includes(plateTerm)) return false;
+    if (companyTerm && !row[COL.company]?.toLowerCase().includes(companyTerm)) return false;
+    if (productTerm && !row[COL.product]?.toLowerCase().includes(productTerm)) return false;
+
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    if (statusTerm && status !== statusTerm) return false;
+
+    return true;
+  });
+
+  let html = `<div class="section-title">🔍 ผลการค้นหา (${filtered.length} รายการ)</div>`;
+
+  if (filtered.length === 0) {
+    html += '<div class="empty-state">ไม่พบข้อมูลที่ตรงกับการค้นหา</div>';
+  } else {
+    html += '<div class="cards-grid">';
+    filtered.forEach(row => html += buildCard(row));
+    html += '</div>';
+  }
+
+  document.getElementById('search-content').innerHTML = html;
+}
+
+function renderDailyReport() {
   const filterDate = document.getElementById('filter-date').value;
   const filterCompany = document.getElementById('filter-company').value;
   const filterProduct = document.getElementById('filter-product').value;
   const filterStatus = document.getElementById('filter-status').value;
+  const filterTempMin = parseFloat(document.getElementById('filter-temp-min').value) || -Infinity;
+  const filterTempMax = parseFloat(document.getElementById('filter-temp-max').value) || Infinity;
 
   let filtered = allData.filter(row => {
-
     if (!row[COL.plate]) return false;
-
     if (filterDate && !matchDate(row[COL.date], filterDate)) return false;
-
     if (filterCompany && row[COL.company] !== filterCompany) return false;
-
     if (filterProduct && !(row[COL.product] || '').includes(filterProduct)) return false;
 
-    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    const temp = parseFloat(row[COL.temp]);
+    if (!isNaN(temp) && (temp < filterTempMin || temp > filterTempMax)) return false;
 
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
     if (filterStatus && status !== filterStatus) return false;
 
     return true;
-
   });
 
   const problems = filtered.filter(r => {
-
     const s = getTempColor(r[COL.temp], r[COL.tempResult]);
-
     return s === 'fail' || s === 'warn';
-
   });
 
   const passed = filtered.filter(r =>
@@ -695,19 +1104,15 @@ function render() {
     .map(r => parseFloat(r[COL.temp]))
     .filter(t => !isNaN(t));
 
-  const avgTemp = temps.length
-    ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1)
-    : '-';
+  const avgTemp = temps.length ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : '-';
+  const maxTemp = temps.length ? Math.max(...temps).toFixed(1) : '-';
+  const minTemp = temps.length ? Math.min(...temps).toFixed(1) : '-';
 
   document.getElementById('display-date').textContent = `📅 ${filterDate || 'ทุกวัน'}`;
-
-  document.getElementById('last-update').textContent =
-    `อัปเดต: ${new Date().toLocaleTimeString('th-TH')}`;
+  document.getElementById('last-update').textContent = `อัปเดต: ${new Date().toLocaleTimeString('th-TH')}`;
 
   let html = `
-
     <div class="kpi-row">
-
       <div class="kpi kpi-total">
         <div class="kpi-label">รถที่ตรวจ</div>
         <div class="kpi-value">${totalCount}</div>
@@ -716,34 +1121,41 @@ function render() {
       <div class="kpi kpi-pass">
         <div class="kpi-label">ผ่าน</div>
         <div class="kpi-value">${passCount}</div>
+        <div class="kpi-sub">${totalCount > 0 ? ((passCount/totalCount)*100).toFixed(1) : 0}%</div>
       </div>
 
       <div class="kpi kpi-fail">
         <div class="kpi-label">ไม่ผ่าน / แจ้งเตือน</div>
         <div class="kpi-value">${failCount}</div>
+        <div class="kpi-sub">${totalCount > 0 ? ((failCount/totalCount)*100).toFixed(1) : 0}%</div>
       </div>
 
       <div class="kpi kpi-avg">
         <div class="kpi-label">เฉลี่ยอุณหภูมิ</div>
         <div class="kpi-value">${avgTemp}</div>
+        <div class="kpi-sub">°C</div>
       </div>
 
-    </div>
+      <div class="kpi kpi-max">
+        <div class="kpi-label">อุณหภูมิสูงสุด</div>
+        <div class="kpi-value">${maxTemp}</div>
+        <div class="kpi-sub">°C</div>
+      </div>
 
+      <div class="kpi kpi-min">
+        <div class="kpi-label">อุณหภูมิต่ำสุด</div>
+        <div class="kpi-value">${minTemp}</div>
+        <div class="kpi-sub">°C</div>
+      </div>
+    </div>
   `;
 
   const worstTruck = filtered
-    .filter(r =>
-      getTempColor(r[COL.temp], r[COL.tempResult]) === 'fail'
-    )
-    .sort((a, b) =>
-      parseFloat(b[COL.temp]) - parseFloat(a[COL.temp])
-    )[0];
+    .filter(r => getTempColor(r[COL.temp], r[COL.tempResult]) === 'fail')
+    .sort((a, b) => parseFloat(b[COL.temp]) - parseFloat(a[COL.temp]))[0];
 
   if (worstTruck) {
-
     html += `
-
       <div style="
         background:linear-gradient(135deg,#C62828,#EF5350);
         border-radius:18px;
@@ -751,242 +1163,145 @@ function render() {
         margin-bottom:20px;
         color:#fff;
       ">
-
         <div style="font-size:18px;margin-bottom:10px;">
           🔴 รถไม่ผ่านหนักสุดวันนี้
         </div>
-
-        <div style="font-size:44px;font-weight:800;">
+        <div style="font-size:44px;font-weight:800;font-family:'Times New Roman',serif;">
           ${worstTruck[COL.plate]}
         </div>
-
-        <div style="font-size:74px;font-weight:900;line-height:1;">
+        <div style="font-size:74px;font-weight:900;line-height:1;font-family:'Times New Roman',serif;">
           ${parseFloat(worstTruck[COL.temp]).toFixed(1)}°C
         </div>
-
       </div>
-
     `;
-
   }
 
   html += `
-
     <div class="section-title">
       ⚠️ รถที่มีปัญหา (${problems.length} คัน)
     </div>
-
   `;
 
   if (problems.length === 0) {
-
-    html += `
-
-      <div class="empty-state">
-        ✅ ไม่มีรถที่มีปัญหาวันนี้
-      </div>
-
-    `;
-
+    html += '<div class="empty-state">✅ ไม่มีรถที่มีปัญหาวันนี้</div>';
   } else {
-
     html += '<div class="cards-grid">';
-
-    problems.forEach(row => {
-      html += buildCard(row);
-    });
-
+    problems.forEach(row => html += buildCard(row));
     html += '</div>';
-
   }
 
-  const companyStats = {};
-
-  filtered.forEach(r => {
-
-    const company = r[COL.company] || 'ไม่ระบุ';
-
-    const status = getTempColor(
-      r[COL.temp],
-      r[COL.tempResult]
-    );
-
-    if (!companyStats[company]) {
-      companyStats[company] = { total: 0, fail: 0 };
-    }
-
-    companyStats[company].total++;
-
-    if (status === 'fail') {
-      companyStats[company].fail++;
-    }
-
-  });
-
-  const allFail = filtered.filter(r =>
-    getTempColor(r[COL.temp], r[COL.tempResult]) === 'fail'
-  ).length;
-
-  const overallRate =
-    totalCount > 0
-      ? allFail / totalCount
-      : 0;
-
-  let insight = '';
-
-  Object.entries(companyStats).forEach(([company, v]) => {
-
-    const rate = v.fail / v.total;
-
-    if (rate > overallRate && v.fail > 0) {
-
-      const diff = Math.round(
-        ((rate - overallRate) * 100)
-      );
-
-      insight += `
-
-        <div style="margin-bottom:10px;">
-          🚨 วันนี้รถ <b>${company}</b>
-          มีอัตราไม่ผ่านสูงกว่าเฉลี่ย
-          <b>${diff}%</b>
-        </div>
-
-      `;
-
-    }
-
-  });
-
-  if (!insight) {
-    insight = '✅ วันนี้ทุกบริษัทมีอัตราการตรวจปกติ';
-  }
-
-  html += `
-
-    <div style="
-      background:linear-gradient(135deg,#1E293B,#334155);
-      color:#fff;
-      border-radius:18px;
-      padding:22px;
-      margin-bottom:20px;
-    ">
-
-      <div style="
-        font-size:22px;
-        font-weight:800;
-        margin-bottom:14px;
-      ">
-        🧠 AI วิเคราะห์แนวโน้มวันนี้
-      </div>
-
-      <div style="line-height:2;font-size:18px;">
-        ${insight}
-      </div>
-
-    </div>
-
-  `;
-
-  html += `
-
-    <div class="summary-box">
-
-      <div class="summary-title">
-        📊 สรุปแยกตามบริษัท
-      </div>
-
-      ${buildSummary(filtered)}
-
-    </div>
-
-  `;
-
-  document.getElementById('main-content').innerHTML = html;
-
+  document.getElementById('daily-content').innerHTML = html;
 }
 
 async function loadData() {
-
   try {
-
     const res = await fetch(CSV_URL);
     const text = await res.text();
-
     const rows = parseCSV(text);
 
     headers = rows[0];
-
     detectColumns(headers);
-
     allData = rows.slice(1);
 
-    const companies = [...new Set(
-      allData.map(r => r[COL.company]).filter(Boolean)
-    )].sort();
-
-    const companySelect = document.getElementById('filter-company');
-
-    companies.forEach(c => {
-
-      const opt = document.createElement('option');
-      opt.value = c;
-      opt.textContent = c;
-
-      companySelect.appendChild(opt);
-
+    const companies = [...new Set(allData.map(r => r[COL.company]).filter(Boolean))].sort();
+    
+    [
+      { id: 'filter-company', selector: '#filter-company' },
+      { id: 'trend-company', selector: '#trend-company' }
+    ].forEach(({ selector }) => {
+      const select = document.querySelector(selector);
+      companies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
     });
 
     const products = [...new Set(
-      allData.flatMap(r =>
-        (r[COL.product] || '')
-          .split(',')
-          .map(p => p.trim())
-      ).filter(Boolean)
+      allData.flatMap(r => (r[COL.product] || '').split(',').map(p => p.trim())).filter(Boolean)
     )].sort();
 
     const productSelect = document.getElementById('filter-product');
-
     products.forEach(p => {
-
       const opt = document.createElement('option');
       opt.value = p;
       opt.textContent = p;
-
       productSelect.appendChild(opt);
-
     });
 
-    render();
+    renderDailyReport();
+    renderCompanyPerformance();
+    renderRanking();
 
   } catch (e) {
-
-    document.getElementById('main-content').innerHTML = `
-      <div class="empty-state">
-        ❌ โหลดข้อมูลไม่ได้
-      </div>
-    `;
-
+    document.getElementById('daily-content').innerHTML = '<div class="empty-state">❌ โหลดข้อมูลไม่ได้</div>';
   }
-
 }
 
-document.getElementById('filter-date')
-  .addEventListener('change', render);
+// Event Listeners
+document.getElementById('filter-date').addEventListener('change', renderDailyReport);
+document.getElementById('filter-company').addEventListener('change', renderDailyReport);
+document.getElementById('filter-product').addEventListener('change', renderDailyReport);
+document.getElementById('filter-status').addEventListener('change', renderDailyReport);
+document.getElementById('filter-temp-min').addEventListener('change', renderDailyReport);
+document.getElementById('filter-temp-max').addEventListener('change', renderDailyReport);
 
-document.getElementById('filter-company')
-  .addEventListener('change', render);
+document.getElementById('trend-range').addEventListener('change', renderTrendAnalysis);
+document.getElementById('trend-company').addEventListener('change', renderTrendAnalysis);
 
-document.getElementById('filter-product')
-  .addEventListener('change', render);
+document.getElementById('btn-search').addEventListener('click', renderAdvancedSearch);
+document.getElementById('btn-clear-search').addEventListener('click', () => {
+  document.getElementById('search-plate').value = '';
+  document.getElementById('search-company').value = '';
+  document.getElementById('search-product').value = '';
+  document.getElementById('search-status').value = '';
+  document.getElementById('search-content').innerHTML = '';
+});
 
-document.getElementById('filter-status')
-  .addEventListener('change', render);
+document.getElementById('btn-refresh').addEventListener('click', loadData);
+
+document.getElementById('btn-export-pdf').addEventListener('click', () => {
+  const element = document.getElementById('daily-content');
+  const opt = {
+    margin: 10,
+    filename: `report-${new Date().toISOString().split('T')[0]}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+  };
+  html2pdf().set(opt).from(element).save();
+});
+
+document.getElementById('btn-export-csv').addEventListener('click', () => {
+  let csv = 'ทะเบียนรถ,บริษัท,สินค้า,อุณหภูมิ,สถานะ,วันที่\n';
+  
+  allData.forEach(row => {
+    const plate = row[COL.plate] || '';
+    const company = row[COL.company] || '';
+    const product = row[COL.product] || '';
+    const temp = row[COL.temp] || '';
+    const status = getTempColor(temp, row[COL.tempResult]);
+    const date = row[COL.date] || '';
+    
+    csv += `"${plate}","${company}","${product}","${temp}","${status}","${date}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `report-${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
+});
+
+function updateChartTheme() {
+  if (trendChart) {
+    trendChart.update();
+  }
+}
 
 document.getElementById('filter-date').value = getTodayString();
-
 loadData();
-
 setInterval(loadData, 5 * 60 * 1000);
 
 </script>
