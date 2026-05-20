@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>รายงานอุณหภูมิประจำวัน — DTDC Cold Chain</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Sawasdee:wght@400;700&display=swap');
 
 * {
   box-sizing: border-box;
@@ -13,7 +14,7 @@
 }
 
 body {
-  font-family: 'Sarabun', 'Segoe UI', sans-serif;
+  font-family: 'Sawasdee', 'Phetsarath OT', 'Times New Roman', sans-serif;
   background: #F0F4F8;
   color: #1A2B3C;
   min-height: 100vh;
@@ -408,7 +409,7 @@ let allData = [];
 let headers = [];
 let COL = {};
 
-function detectColumns(headers ) {
+function detectColumns(headers) {
 
   headers.forEach((h, i) => {
 
@@ -563,8 +564,7 @@ function buildCard(row) {
       </div>
 
       <div class="card-meta">
-        🏢 ${company}  
-
+        🏢 ${company}<br>
         📦 ${product}
       </div>
 
