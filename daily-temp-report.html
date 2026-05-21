@@ -849,6 +849,8 @@ body.dark-mode .sum-bar-track {
           <option value="7">7 วันที่ผ่านมา</option>
           <option value="30">30 วันที่ผ่านมา</option>
           <option value="90">90 วันที่ผ่านมา</option>
+          <option value="month">เดือนปัจจุบัน</option>
+          <option value="year">ปีปัจจุบัน</option>
         </select>
       </div>
 
@@ -868,18 +870,24 @@ body.dark-mode .sum-bar-track {
   <div class="toolbar">
     <div class="filters">
       <div class="filter-group">
-        <div class="filter-label">🚗 ทะเบียนรถ</div>
-        <input type="search" id="search-plate" placeholder="เช่น กข0688">
+        <div class="filter-label">🏢 บริษัท</div>
+        <select id="search-company">
+          <option value="">-- เลือกบริษัท --</option>
+        </select>
       </div>
 
       <div class="filter-group">
-        <div class="filter-label">🏢 บริษัท</div>
-        <input type="search" id="search-company" placeholder="เช่น DYNAMIC">
+        <div class="filter-label">🚗 ทะเบียนรถ</div>
+        <select id="search-plate">
+          <option value="">-- เลือกทะเบียนรถ --</option>
+        </select>
       </div>
 
       <div class="filter-group">
         <div class="filter-label">📦 สินค้า</div>
-        <input type="search" id="search-product" placeholder="เช่น ไก่เนื้อ">
+        <select id="search-product">
+          <option value="">-- เลือกสินค้า --</option>
+        </select>
       </div>
 
       <div class="filter-group">
@@ -1154,11 +1162,20 @@ function renderRanking() {
 }
 
 function renderTrendAnalysis() {
-  const range = parseInt(document.getElementById('trend-range').value) || 7;
+  const rangeValue = document.getElementById('trend-range').value;
   const company = document.getElementById('trend-company').value;
 
   const now = new Date();
-  const startDate = new Date(now.getTime() - range * 24 * 60 * 60 * 1000);
+  let startDate;
+  
+  if (rangeValue === 'month') {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (rangeValue === 'year') {
+    startDate = new Date(now.getFullYear(), 0, 1);
+  } else {
+    const range = parseInt(rangeValue) || 7;
+    startDate = new Date(now.getTime() - range * 24 * 60 * 60 * 1000);
+  }
 
   const trendData = {};
   
@@ -1272,15 +1289,15 @@ function renderTrendAnalysis() {
 }
 
 function renderAdvancedSearch() {
-  const plateTerm = document.getElementById('search-plate').value.toLowerCase();
-  const companyTerm = document.getElementById('search-company').value.toLowerCase();
-  const productTerm = document.getElementById('search-product').value.toLowerCase();
+  const plateTerm = document.getElementById('search-plate').value;
+  const companyTerm = document.getElementById('search-company').value;
+  const productTerm = document.getElementById('search-product').value;
   const statusTerm = document.getElementById('search-status').value;
 
   let filtered = allData.filter(row => {
-    if (plateTerm && !row[COL.plate]?.toLowerCase().includes(plateTerm)) return false;
-    if (companyTerm && !row[COL.company]?.toLowerCase().includes(companyTerm)) return false;
-    if (productTerm && !row[COL.product]?.toLowerCase().includes(productTerm)) return false;
+    if (plateTerm && row[COL.plate] !== plateTerm) return false;
+    if (companyTerm && row[COL.company] !== companyTerm) return false;
+    if (productTerm && !(row[COL.product] || '').includes(productTerm)) return false;
 
     const status = getTempColor(row[COL.temp], row[COL.tempResult]);
     if (statusTerm && status !== statusTerm) return false;
@@ -1444,6 +1461,18 @@ async function loadData() {
       });
     });
 
+    // Populate search company dropdown
+    const searchCompanySelect = document.getElementById('search-company');
+    const existingSearchCompanies = Array.from(searchCompanySelect.options).map(o => o.value);
+    companies.forEach(c => {
+      if (!existingSearchCompanies.includes(c)) {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        searchCompanySelect.appendChild(opt);
+      }
+    });
+
     const products = [...new Set(
       allData.flatMap(r => (r[COL.product] || '').split(',').map(p => p.trim())).filter(Boolean)
     )].sort();
@@ -1456,6 +1485,43 @@ async function loadData() {
         opt.value = p;
         opt.textContent = p;
         productSelect.appendChild(opt);
+      }
+    });
+
+    // Populate search product dropdown
+    const searchProductSelect = document.getElementById('search-product');
+    const existingSearchProducts = Array.from(searchProductSelect.options).map(o => o.value);
+    products.forEach(p => {
+      if (!existingSearchProducts.includes(p)) {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        searchProductSelect.appendChild(opt);
+      }
+    });
+
+    // Update search dropdowns based on company selection
+    document.getElementById('search-company').addEventListener('change', () => {
+      const selectedCompany = document.getElementById('search-company').value;
+      const plateSelect = document.getElementById('search-plate');
+      
+      // Reset plate select
+      plateSelect.innerHTML = '<option value="">-- เลือกทะเบียนรถ --</option>';
+      
+      if (selectedCompany) {
+        const plates = [...new Set(
+          allData
+            .filter(r => r[COL.company] === selectedCompany)
+            .map(r => r[COL.plate])
+            .filter(Boolean)
+        )].sort();
+        
+        plates.forEach(plate => {
+          const opt = document.createElement('option');
+          opt.value = plate;
+          opt.textContent = plate;
+          plateSelect.appendChild(opt);
+        });
       }
     });
 
@@ -1478,6 +1544,30 @@ document.getElementById('filter-temp-max').addEventListener('change', renderDail
 
 document.getElementById('trend-range').addEventListener('change', renderTrendAnalysis);
 document.getElementById('trend-company').addEventListener('change', renderTrendAnalysis);
+
+document.getElementById('search-company').addEventListener('change', () => {
+  const selectedCompany = document.getElementById('search-company').value;
+  const plateSelect = document.getElementById('search-plate');
+  
+  // Reset plate select
+  plateSelect.innerHTML = '<option value="">-- เลือกทะเบียนรถ --</option>';
+  
+  if (selectedCompany) {
+    const plates = [...new Set(
+      allData
+        .filter(r => r[COL.company] === selectedCompany)
+        .map(r => r[COL.plate])
+        .filter(Boolean)
+    )].sort();
+    
+    plates.forEach(plate => {
+      const opt = document.createElement('option');
+      opt.value = plate;
+      opt.textContent = plate;
+      plateSelect.appendChild(opt);
+    });
+  }
+});
 
 document.getElementById('btn-search').addEventListener('click', renderAdvancedSearch);
 document.getElementById('btn-clear-search').addEventListener('click', () => {
@@ -1526,6 +1616,8 @@ document.getElementById('btn-export-csv').addEventListener('click', () => {
 document.getElementById('filter-date').value = getTodayString();
 loadData();
 setInterval(loadData, 5 * 60 * 1000);
+
+
 
 </script>
 
