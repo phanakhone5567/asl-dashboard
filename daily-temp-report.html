@@ -543,6 +543,14 @@ body.dark-mode .card {
   padding-top: 12px;
 }
 
+.card-date {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
 /* Chart Container */
 .chart-container {
   background: #fff;
@@ -864,7 +872,14 @@ body.dark-mode .sum-bar-track {
       </div>
     </div>
   </div>
-  <div id="trend-content"></div>
+  
+  <div class="tabs" style="margin-top: 20px;">
+    <button class="tab-btn active" data-trend-tab="daily">📈 ข้อมูลรายวัน</button>
+    <button class="tab-btn" data-trend-tab="compare">📊 เปรียบเทียบ</button>
+  </div>
+  
+  <div id="trend-daily" class="tab-content active"></div>
+  <div id="trend-compare" class="tab-content"></div>
 </div>
 
 <!-- TAB 5: ADVANCED SEARCH -->
@@ -923,11 +938,25 @@ let trendChart = null;
 // Tab switching
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    const tabName = btn.dataset.tab;
+    if (tabName) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'trend') renderTrendAnalysis();
+    }
+  });
+});
+
+// Trend sub-tabs
+document.querySelectorAll('[data-trend-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-trend-tab]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#trend-daily, #trend-compare').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById(btn.dataset.tab).classList.add('active');
-    if (btn.dataset.tab === 'trend') renderTrendAnalysis();
+    document.getElementById('trend-' + btn.dataset.trendTab).classList.add('active');
+    if (btn.dataset.trendTab === 'compare') renderTrendComparison();
   });
 });
 
@@ -1031,6 +1060,7 @@ function buildCard(row) {
   const company = row[COL.company] || '-';
   const temp = row[COL.temp] || '-';
   const product = row[COL.product] || '-';
+  const date = row[COL.date] || '-';
   const status = getTempColor(temp, row[COL.tempResult]);
   const tempNum = parseFloat(temp);
 
@@ -1053,6 +1083,9 @@ function buildCard(row) {
       <div class="card-meta">
         🏢 ${company}<br>
         📦 ${product}
+      </div>
+      <div class="card-date">
+        📅 ${date}
       </div>
     </div>
   `;
@@ -1272,6 +1305,189 @@ function renderTrendAnalysis() {
   renderTrendChart(trendData);
 }
 
+function renderTrendComparison() {
+  const rangeValue = document.getElementById('trend-range').value;
+  const company = document.getElementById('trend-company').value;
+  const now = new Date();
+  
+  let currentData = {};
+  let previousData = {};
+  let currentLabel = '';
+  let previousLabel = '';
+  
+  if (rangeValue === '7') {
+    // 7 days vs 7 days ago
+    const startCurrent = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const startPrevious = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const endPrevious = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    currentLabel = '7 วันปัจจุบัน';
+    previousLabel = '7 วันที่ผ่านมา';
+    
+    allData.forEach(row => {
+      if (company && row[COL.company] !== company) return;
+      const dateStr = row[COL.date];
+      if (!dateStr) return;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return;
+      let d = parseInt(parts[0]);
+      let m = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (y > 2500) y = y - 543;
+      const rowDate = new Date(y, m - 1, d);
+      
+      const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+      const temp = parseFloat(row[COL.temp]);
+      
+      if (rowDate >= startCurrent) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!currentData[key]) currentData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        currentData[key].total++;
+        currentData[key][status]++;
+        if (!isNaN(temp)) currentData[key].temps.push(temp);
+      } else if (rowDate >= startPrevious && rowDate < endPrevious) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!previousData[key]) previousData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        previousData[key].total++;
+        previousData[key][status]++;
+        if (!isNaN(temp)) previousData[key].temps.push(temp);
+      }
+    });
+  } else if (rangeValue === 'month') {
+    // Current month vs previous month
+    const startCurrent = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startPrevious = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endPrevious = new Date(now.getFullYear(), now.getMonth(), 0);
+    currentLabel = 'เดือนปัจจุบัน';
+    previousLabel = 'เดือนที่ผ่านมา';
+    
+    allData.forEach(row => {
+      if (company && row[COL.company] !== company) return;
+      const dateStr = row[COL.date];
+      if (!dateStr) return;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return;
+      let d = parseInt(parts[0]);
+      let m = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (y > 2500) y = y - 543;
+      const rowDate = new Date(y, m - 1, d);
+      
+      const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+      const temp = parseFloat(row[COL.temp]);
+      
+      if (rowDate >= startCurrent) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!currentData[key]) currentData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        currentData[key].total++;
+        currentData[key][status]++;
+        if (!isNaN(temp)) currentData[key].temps.push(temp);
+      } else if (rowDate >= startPrevious && rowDate <= endPrevious) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!previousData[key]) previousData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        previousData[key].total++;
+        previousData[key][status]++;
+        if (!isNaN(temp)) previousData[key].temps.push(temp);
+      }
+    });
+  } else if (rangeValue === 'year') {
+    // Current year vs previous year
+    const startCurrent = new Date(now.getFullYear(), 0, 1);
+    const startPrevious = new Date(now.getFullYear() - 1, 0, 1);
+    const endPrevious = new Date(now.getFullYear() - 1, 11, 31);
+    currentLabel = 'ปีปัจจุบัน';
+    previousLabel = 'ปีที่ผ่านมา';
+    
+    allData.forEach(row => {
+      if (company && row[COL.company] !== company) return;
+      const dateStr = row[COL.date];
+      if (!dateStr) return;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return;
+      let d = parseInt(parts[0]);
+      let m = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (y > 2500) y = y - 543;
+      const rowDate = new Date(y, m - 1, d);
+      
+      const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+      const temp = parseFloat(row[COL.temp]);
+      
+      if (rowDate >= startCurrent) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!currentData[key]) currentData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        currentData[key].total++;
+        currentData[key][status]++;
+        if (!isNaN(temp)) currentData[key].temps.push(temp);
+      } else if (rowDate >= startPrevious && rowDate <= endPrevious) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!previousData[key]) previousData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        previousData[key].total++;
+        previousData[key][status]++;
+        if (!isNaN(temp)) previousData[key].temps.push(temp);
+      }
+    });
+  }
+  
+  const currentDates = Object.keys(currentData).sort();
+  const previousDates = Object.keys(previousData).sort();
+  
+  const currentPassRates = currentDates.map(d => (currentData[d].pass / currentData[d].total * 100).toFixed(1));
+  const previousPassRates = previousDates.map(d => (previousData[d].pass / previousData[d].total * 100).toFixed(1));
+  
+  let html = `<div class="chart-container" style="height: 500px;">
+    <div class="chart-title">📊 เปรียบเทียบอัตราการผ่าน</div>
+    <canvas id="compareChart"></canvas>
+  </div>`;
+  
+  document.getElementById('trend-compare').innerHTML = html;
+  
+  setTimeout(() => {
+    const ctx = document.getElementById('compareChart');
+    if (!ctx) return;
+    
+    if (trendChart) trendChart.destroy();
+    
+    trendChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [...new Set([...currentDates, ...previousDates])].sort(),
+        datasets: [{
+          label: currentLabel,
+          data: currentDates.map(d => (currentData[d].pass / currentData[d].total * 100).toFixed(1)),
+          backgroundColor: '#10B981',
+          borderColor: '#059669',
+          borderWidth: 2
+        }, {
+          label: previousLabel,
+          data: previousDates.map(d => (previousData[d].pass / previousData[d].total * 100).toFixed(1)),
+          backgroundColor: '#F59E0B',
+          borderColor: '#D97706',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              font: { size: 14, weight: 'bold' },
+              padding: 20
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+          }
+        }
+      }
+    });
+  }, 100);
+}
+
 function renderTrendChart(trendData) {
   const dates = Object.keys(trendData).sort();
   const passRates = dates.map(d => (trendData[d].pass / trendData[d].total * 100).toFixed(1));
@@ -1282,13 +1498,16 @@ function renderTrendChart(trendData) {
     <canvas id="trendChart"></canvas>
   </div>`;
 
-  document.getElementById('trend-content').innerHTML = html;
+  document.getElementById('trend-daily').innerHTML = html;
 
   setTimeout(() => {
     const ctx = document.getElementById('trendChart');
     if (!ctx) return;
 
     if (trendChart) trendChart.destroy();
+    
+    // Reset trend-compare when rendering daily
+    document.getElementById('trend-compare').innerHTML = '';
 
     trendChart = new Chart(ctx, {
       type: 'line',
