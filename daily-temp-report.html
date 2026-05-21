@@ -850,7 +850,9 @@ body.dark-mode .sum-bar-track {
           <option value="30">30 วันที่ผ่านมา</option>
           <option value="90">90 วันที่ผ่านมา</option>
           <option value="month">เดือนปัจจุบัน</option>
+          <option value="prev-month">เดือนที่ผ่านมา</option>
           <option value="year">ปีปัจจุบัน</option>
+          <option value="prev-year">ปีที่ผ่านมา</option>
         </select>
       </div>
 
@@ -1170,8 +1172,66 @@ function renderTrendAnalysis() {
   
   if (rangeValue === 'month') {
     startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (rangeValue === 'prev-month') {
+    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    // Only show data from previous month
+    const trendData = {};
+    allData.forEach(row => {
+      if (company && row[COL.company] !== company) return;
+      const dateStr = row[COL.date];
+      if (!dateStr) return;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return;
+      let d = parseInt(parts[0]);
+      let m = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (y > 2500) y = y - 543;
+      const rowDate = new Date(y, m - 1, d);
+      if (rowDate < startDate || rowDate > endOfPrevMonth) return;
+      const key = rowDate.toISOString().split('T')[0];
+      if (!trendData[key]) {
+        trendData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+      }
+      const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+      const temp = parseFloat(row[COL.temp]);
+      trendData[key].total++;
+      trendData[key][status]++;
+      if (!isNaN(temp)) trendData[key].temps.push(temp);
+    });
+    renderTrendChart(trendData);
+    return;
   } else if (rangeValue === 'year') {
     startDate = new Date(now.getFullYear(), 0, 1);
+  } else if (rangeValue === 'prev-year') {
+    startDate = new Date(now.getFullYear() - 1, 0, 1);
+    const endOfPrevYear = new Date(now.getFullYear() - 1, 11, 31);
+    // Only show data from previous year
+    const trendData = {};
+    allData.forEach(row => {
+      if (company && row[COL.company] !== company) return;
+      const dateStr = row[COL.date];
+      if (!dateStr) return;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return;
+      let d = parseInt(parts[0]);
+      let m = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (y > 2500) y = y - 543;
+      const rowDate = new Date(y, m - 1, d);
+      if (rowDate < startDate || rowDate > endOfPrevYear) return;
+      const key = rowDate.toISOString().split('T')[0];
+      if (!trendData[key]) {
+        trendData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+      }
+      const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+      const temp = parseFloat(row[COL.temp]);
+      trendData[key].total++;
+      trendData[key][status]++;
+      if (!isNaN(temp)) trendData[key].temps.push(temp);
+    });
+    renderTrendChart(trendData);
+    return;
   } else {
     const range = parseInt(rangeValue) || 7;
     startDate = new Date(now.getTime() - range * 24 * 60 * 60 * 1000);
@@ -1209,6 +1269,10 @@ function renderTrendAnalysis() {
     if (!isNaN(temp)) trendData[key].temps.push(temp);
   });
 
+  renderTrendChart(trendData);
+}
+
+function renderTrendChart(trendData) {
   const dates = Object.keys(trendData).sort();
   const passRates = dates.map(d => (trendData[d].pass / trendData[d].total * 100).toFixed(1));
   const avgTemps = dates.map(d => trendData[d].temps.length ? (trendData[d].temps.reduce((a, b) => a + b) / trendData[d].temps.length).toFixed(1) : 0);
@@ -1509,17 +1573,26 @@ async function loadData() {
       plateSelect.innerHTML = '<option value="">-- เลือกทะเบียนรถ --</option>';
       
       if (selectedCompany) {
-        const plates = [...new Set(
-          allData
-            .filter(r => r[COL.company] === selectedCompany)
-            .map(r => r[COL.plate])
-            .filter(Boolean)
-        )].sort();
+        const plateData = {};
+        allData
+          .filter(r => r[COL.company] === selectedCompany)
+          .forEach(r => {
+            const plate = r[COL.plate];
+            if (plate) {
+              if (!plateData[plate]) {
+                plateData[plate] = { date: r[COL.date], temp: r[COL.temp], status: getTempColor(r[COL.temp], r[COL.tempResult]) };
+              }
+            }
+          });
         
-        plates.forEach(plate => {
+        Object.keys(plateData).sort().forEach(plate => {
+          const data = plateData[plate];
+          const statusEmoji = data.status === 'fail' ? '❌' : data.status === 'warn' ? '⚠️' : '✅';
+          const tempText = data.temp ? `${parseFloat(data.temp).toFixed(1)}°C` : '-';
+          const dateText = data.date ? ` (${data.date})` : '';
           const opt = document.createElement('option');
           opt.value = plate;
-          opt.textContent = plate;
+          opt.textContent = `${plate} ${statusEmoji} ${tempText}${dateText}`;
           plateSelect.appendChild(opt);
         });
       }
@@ -1553,17 +1626,26 @@ document.getElementById('search-company').addEventListener('change', () => {
   plateSelect.innerHTML = '<option value="">-- เลือกทะเบียนรถ --</option>';
   
   if (selectedCompany) {
-    const plates = [...new Set(
-      allData
-        .filter(r => r[COL.company] === selectedCompany)
-        .map(r => r[COL.plate])
-        .filter(Boolean)
-    )].sort();
+    const plateData = {};
+    allData
+      .filter(r => r[COL.company] === selectedCompany)
+      .forEach(r => {
+        const plate = r[COL.plate];
+        if (plate) {
+          if (!plateData[plate]) {
+            plateData[plate] = { date: r[COL.date], temp: r[COL.temp], status: getTempColor(r[COL.temp], r[COL.tempResult]) };
+          }
+        }
+      });
     
-    plates.forEach(plate => {
+    Object.keys(plateData).sort().forEach(plate => {
+      const data = plateData[plate];
+      const statusEmoji = data.status === 'fail' ? '❌' : data.status === 'warn' ? '⚠️' : '✅';
+      const tempText = data.temp ? `${parseFloat(data.temp).toFixed(1)}°C` : '-';
+      const dateText = data.date ? ` (${data.date})` : '';
       const opt = document.createElement('option');
       opt.value = plate;
-      opt.textContent = plate;
+      opt.textContent = `${plate} ${statusEmoji} ${tempText}${dateText}`;
       plateSelect.appendChild(opt);
     });
   }
