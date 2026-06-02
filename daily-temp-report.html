@@ -1979,15 +1979,7 @@ document.getElementById('btn-summary-export-excel').addEventListener('click', ()
   XLSX.writeFile(wb, `summary-${new Date().toISOString().split('T')[0]}.xlsx`);
 });
 
-document.getElementById('filter-date').value = getTodayString();
-loadData();
-setInterval(loadData, 5 * 60 * 1000);
-
-</script>
-
-</body>
-</html>
-// ===== เพิ่มเติม Code สำหรับ Tab: ประสิทธิภาพบริษัท =====
+// ===== ฟังก์ชั่นสำหรับ Tab: ประสิทธิภาพบริษัท =====
 function renderCompanyPerformance() {
   const stats = getCompanyStats(allData);
   
@@ -2029,7 +2021,7 @@ function renderCompanyPerformance() {
   document.getElementById('company-content').innerHTML = html;
 }
 
-// ===== เพิ่มเติม Code สำหรับ Tab: อันดับบริษัท =====
+// ===== ฟังก์ชั่นสำหรับ Tab: อันดับบริษัท =====
 function renderRanking() {
   const stats = getCompanyStats(allData);
   
@@ -2122,7 +2114,7 @@ function renderRanking() {
   document.getElementById('ranking-content').innerHTML = html;
 }
 
-// ===== เพิ่มเติม Code สำหรับ Tab: ค้นหา (ปรับปรุง) =====
+// ===== ปรับปรุง renderAdvancedSearch =====
 function renderAdvancedSearch() {
   const searchPlate = document.getElementById('search-plate').value.toUpperCase();
   const searchCompany = document.getElementById('search-company').value;
@@ -2188,7 +2180,6 @@ function renderAdvancedSearch() {
 }
 
 // ===== Event Listeners สำหรับแต่ละ Tab =====
-// Tab: ประสิทธิภาพ และ อันดับ
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     if (btn.dataset.tab === 'company') {
@@ -2205,3 +2196,12 @@ document.getElementById('search-plate').addEventListener('keyup', renderAdvanced
 document.getElementById('search-company').addEventListener('change', renderAdvancedSearch);
 document.getElementById('search-product').addEventListener('change', renderAdvancedSearch);
 document.getElementById('search-status').addEventListener('change', renderAdvancedSearch);
+
+document.getElementById('filter-date').value = getTodayString();
+loadData();
+setInterval(loadData, 5 * 60 * 1000);
+
+</script>
+
+</body>
+</html>
