@@ -1987,3 +1987,221 @@ setInterval(loadData, 5 * 60 * 1000);
 
 </body>
 </html>
+// ===== เพิ่มเติม Code สำหรับ Tab: ประสิทธิภาพบริษัท =====
+function renderCompanyPerformance() {
+  const stats = getCompanyStats(allData);
+  
+  let html = `<div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>บริษัท</th>
+          <th>รวม</th>
+          <th>ผ่าน</th>
+          <th>แจ้งเตือน</th>
+          <th>ไม่ผ่าน</th>
+          <th>อัตราผ่าน (%)</th>
+          <th>อุณหภูมิเฉลี่ย</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  Object.keys(stats).sort().forEach(company => {
+    const data = stats[company];
+    const passRate = ((data.pass / data.total) * 100).toFixed(1);
+    const avgTemp = data.temps.length ? (data.temps.reduce((a, b) => a + b) / data.temps.length).toFixed(1) : '-';
+    const passColor = passRate >= 80 ? '#10B981' : passRate >= 60 ? '#F59E0B' : '#EF4444';
+
+    html += `
+      <tr>
+        <td><strong>${company}</strong></td>
+        <td>${data.total}</td>
+        <td>✅ ${data.pass}</td>
+        <td>⚠️ ${data.warn}</td>
+        <td>❌ ${data.fail}</td>
+        <td><strong style="color: ${passColor}">${passRate}%</strong></td>
+        <td>${avgTemp}°C</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table></div>`;
+  document.getElementById('company-content').innerHTML = html;
+}
+
+// ===== เพิ่มเติม Code สำหรับ Tab: อันดับบริษัท =====
+function renderRanking() {
+  const stats = getCompanyStats(allData);
+  
+  // เรียงลำดับตามอัตราผ่าน (สูงสุด)
+  const topCompanies = Object.entries(stats)
+    .map(([name, data]) => ({
+      name,
+      pass: data.pass,
+      total: data.total,
+      rate: (data.pass / data.total) * 100
+    }))
+    .sort((a, b) => b.rate - a.rate);
+
+  // เรียงลำดับตามไม่ผ่าน (มากที่สุด)
+  const bottomCompanies = Object.entries(stats)
+    .map(([name, data]) => ({
+      name,
+      fail: data.fail,
+      total: data.total,
+      rate: (data.fail / data.total) * 100
+    }))
+    .sort((a, b) => b.rate - a.rate);
+
+  let html = `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div>
+        <h3 style="color: #10B981; margin-bottom: 16px; font-size: 16px; font-weight: 700;">🥇 บริษัทดีที่สุด (ผ่านมากที่สุด)</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>อันดับ</th>
+                <th>บริษัท</th>
+                <th>ผ่าน</th>
+                <th>อัตรา (%)</th>
+              </tr>
+            </thead>
+            <tbody>`;
+
+  topCompanies.slice(0, 10).forEach((item, idx) => {
+    html += `
+      <tr>
+        <td><strong>${idx + 1}</strong></td>
+        <td>${item.name}</td>
+        <td>✅ ${item.pass}/${item.total}</td>
+        <td><strong style="color: #10B981">${item.rate.toFixed(1)}%</strong></td>
+      </tr>
+    `;
+  });
+
+  html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="color: #EF4444; margin-bottom: 16px; font-size: 16px; font-weight: 700;">⚠️ บริษัทที่ต้องปรับปรุง (ไม่ผ่านมากที่สุด)</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>อันดับ</th>
+                <th>บริษัท</th>
+                <th>ไม่ผ่าน</th>
+                <th>อัตรา (%)</th>
+              </tr>
+            </thead>
+            <tbody>`;
+
+  bottomCompanies.slice(0, 10).forEach((item, idx) => {
+    html += `
+      <tr>
+        <td><strong>${idx + 1}</strong></td>
+        <td>${item.name}</td>
+        <td>❌ ${item.fail}/${item.total}</td>
+        <td><strong style="color: #EF4444">${item.rate.toFixed(1)}%</strong></td>
+      </tr>
+    `;
+  });
+
+  html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('ranking-content').innerHTML = html;
+}
+
+// ===== เพิ่มเติม Code สำหรับ Tab: ค้นหา (ปรับปรุง) =====
+function renderAdvancedSearch() {
+  const searchPlate = document.getElementById('search-plate').value.toUpperCase();
+  const searchCompany = document.getElementById('search-company').value;
+  const searchProduct = document.getElementById('search-product').value;
+  const searchStatus = document.getElementById('search-status').value;
+
+  let filtered = allData.filter(row => {
+    if (!row[COL.plate]) return false;
+    
+    if (searchPlate && !row[COL.plate].toUpperCase().includes(searchPlate)) return false;
+    if (searchCompany && row[COL.company] !== searchCompany) return false;
+    if (searchProduct && !(row[COL.product] || '').includes(searchProduct)) return false;
+
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    if (searchStatus && status !== searchStatus) return false;
+
+    return true;
+  });
+
+  let html = `<div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ทะเบียน</th>
+          <th>บริษัท</th>
+          <th>สินค้า</th>
+          <th>อุณหภูมิ (°C)</th>
+          <th>สถานะ</th>
+          <th>วันที่</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  if (filtered.length === 0) {
+    html += `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #999;">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
+  } else {
+    filtered.forEach(row => {
+      const plate = row[COL.plate] || '-';
+      const company = row[COL.company] || '-';
+      const product = row[COL.product] || '-';
+      const temp = row[COL.temp] || '-';
+      const date = row[COL.date] || '-';
+      const status = getTempColor(temp, row[COL.tempResult]);
+      
+      const statusText = status === 'fail' ? '❌ ไม่ผ่าน' : status === 'warn' ? '⚠️ แจ้งเตือน' : '✅ ผ่าน';
+      const statusColor = status === 'fail' ? '#EF4444' : status === 'warn' ? '#F59E0B' : '#10B981';
+
+      html += `
+        <tr>
+          <td><strong style="color: var(--primary)">${plate}</strong></td>
+          <td>${company}</td>
+          <td>${product}</td>
+          <td><strong>${temp}</strong></td>
+          <td><span style="color: ${statusColor}; font-weight: 700;">${statusText}</span></td>
+          <td>${date}</td>
+        </tr>
+      `;
+    });
+  }
+
+  html += `</tbody></table></div>`;
+  document.getElementById('search-content').innerHTML = html;
+}
+
+// ===== Event Listeners สำหรับแต่ละ Tab =====
+// Tab: ประสิทธิภาพ และ อันดับ
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.tab === 'company') {
+      renderCompanyPerformance();
+    }
+    if (btn.dataset.tab === 'ranking') {
+      renderRanking();
+    }
+  });
+});
+
+// ค้นหา - เมื่อพิมพ์หรือเปลี่ยนค่า
+document.getElementById('search-plate').addEventListener('keyup', renderAdvancedSearch);
+document.getElementById('search-company').addEventListener('change', renderAdvancedSearch);
+document.getElementById('search-product').addEventListener('change', renderAdvancedSearch);
+document.getElementById('search-status').addEventListener('change', renderAdvancedSearch);
