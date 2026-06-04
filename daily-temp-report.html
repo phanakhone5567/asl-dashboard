@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ฃ<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -427,6 +427,18 @@ body.dark-mode .kpi {
   line-height: 1;
 }
 
+/* Section Title */
+.section-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+  color: #DC2626;
+  border-left: 4px solid #EF4444;
+}
+
 /* Cards Grid */
 .cards-grid {
   display: grid;
@@ -585,28 +597,58 @@ tr:hover {
   border: 2px dashed #10B981;
 }
 
+/* Summary Box */
+.summary-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+}
+
+body.dark-mode .summary-box {
+  background: var(--dark);
+}
+
+.summary-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   body { padding: 8px; }
-  .header { padding: 16px 12px; gap: 8px; }
+  
+  .header {
+    padding: 16px 12px;
+    gap: 8px;
+  }
+  
   .header h1 { font-size: 20px; }
   .header-right { gap: 8px; }
   .date-display .date { font-size: 18px; }
+  
   .toolbar { padding: 12px; gap: 10px; }
   .filters { gap: 10px; }
   .filter-group { width: 100%; }
   select, input { width: 100%; min-width: unset; }
+  
   .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .kpi { padding: 12px; }
   .kpi-value { font-size: 24px; }
+  
   .cards-grid { grid-template-columns: 1fr; gap: 10px; }
   .chart-container { height: 280px; }
   .tabs { gap: 6px; padding: 6px; }
   .tab-btn { padding: 8px 12px; font-size: 11px; }
   .btn { padding: 8px 10px; font-size: 11px; }
+  
   table { font-size: 11px; }
   th, td { padding: 8px; }
 }
+
 </style>
 </head>
 <body>
@@ -629,15 +671,19 @@ tr:hover {
 <div class="tabs">
   <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
   <button class="tab-btn" data-tab="daily">📅 รายงานประจำวัน</button>
+  <button class="tab-btn" data-tab="company">🏢 ประสิทธิภาพ</button>
+  <button class="tab-btn" data-tab="ranking">🏆 อันดับ</button>
+  <button class="tab-btn" data-tab="trend">📈 แนวโน้ม</button>
   <button class="tab-btn" data-tab="summary">📋 สรุป</button>
+  <button class="tab-btn" data-tab="search">🔍 ค้นหา</button>
 </div>
 
+<!-- TAB 1: DASHBOARD -->
 <div id="dashboard" class="tab-content active">
-  <div id="dashboard-content">
-    <div style="text-align:center; padding:40px;">กำลังโหลดข้อมูล...</div>
-  </div>
+  <div id="dashboard-content"></div>
 </div>
 
+<!-- TAB 2: DAILY REPORT -->
 <div id="daily" class="tab-content">
   <div class="toolbar">
     <div class="filters">
@@ -657,12 +703,6 @@ tr:hover {
         <div class="filter-label">📦 สินค้า</div>
         <select id="filter-product">
           <option value="">ทั้งหมด</option>
-          <option value="ไก่เชือด">ไก่เชือด</option>
-          <option value="ไก่ตัดแต่ง">ไก่ตัดแต่ง</option>
-          <option value="ไก่เนื้อ">ไก่เนื้อ</option>
-          <option value="ไก่ลาด">ไก่ลาด</option>
-          <option value="หมูซีก">หมูซีก</option>
-          <option value="หมูตัดแต่ง">หมูตัดแต่ง</option>
         </select>
       </div>
 
@@ -676,11 +716,63 @@ tr:hover {
         </select>
       </div>
     </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-primary" id="btn-export-pdf">📥 PDF</button>
+      <button class="btn btn-primary" id="btn-export-excel">📊 Excel</button>
+      <button class="btn btn-secondary" id="btn-refresh">🔄 Refresh</button>
+    </div>
   </div>
 
   <div id="daily-content"></div>
 </div>
 
+<!-- TAB 3: COMPANY PERFORMANCE -->
+<div id="company" class="tab-content">
+  <div id="company-content"></div>
+</div>
+
+<!-- TAB 4: RANKING -->
+<div id="ranking" class="tab-content">
+  <div id="ranking-content"></div>
+</div>
+
+<!-- TAB 5: TREND ANALYSIS -->
+<div id="trend" class="tab-content">
+  <div class="toolbar">
+    <div class="filters">
+      <div class="filter-group">
+        <div class="filter-label">📊 ช่วงวันที่</div>
+        <select id="trend-range">
+          <option value="7">7 วัน</option>
+          <option value="30">30 วัน</option>
+          <option value="90">90 วัน</option>
+          <option value="month">เดือนนี้</option>
+          <option value="prev-month">เดือนที่แล้ว</option>
+          <option value="year">ปีนี้</option>
+          <option value="prev-year">ปีที่แล้ว</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">🏢 บริษัท</div>
+        <select id="trend-company">
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  
+  <div class="tabs" style="margin-top: 14px;">
+    <button class="tab-btn active" data-trend-tab="daily">📈 ข้อมูลรายวัน</button>
+    <button class="tab-btn" data-trend-tab="compare">📊 เปรียบเทียบ</button>
+  </div>
+  
+  <div id="trend-daily" class="tab-content active"></div>
+  <div id="trend-compare" class="tab-content"></div>
+</div>
+
+<!-- TAB 6: SUMMARY REPORT -->
 <div id="summary" class="tab-content">
   <div class="toolbar">
     <div class="filters">
@@ -693,9 +785,58 @@ tr:hover {
         </select>
       </div>
     </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-primary" id="btn-summary-export-pdf">📥 PDF</button>
+      <button class="btn btn-primary" id="btn-summary-export-excel">📊 Excel</button>
+    </div>
   </div>
 
   <div id="summary-content"></div>
+</div>
+
+<!-- TAB 7: ADVANCED SEARCH -->
+<div id="search" class="tab-content">
+  <div class="toolbar">
+    <div class="filters">
+      <div class="filter-group">
+        <div class="filter-label">🏢 บริษัท</div>
+        <select id="search-company">
+          <option value="">-- เลือกบริษัท --</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">🚗 ทะเบียนรถ</div>
+        <select id="search-plate">
+          <option value="">-- เลือกทะเบียนรถ --</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">📦 สินค้า</div>
+        <select id="search-product">
+          <option value="">-- เลือกสินค้า --</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-label">⚠️ สถานะ</div>
+        <select id="search-status">
+          <option value="">ทั้งหมด</option>
+          <option value="fail">❌ ไม่ผ่าน</option>
+          <option value="warn">⚠️ แจ้งเตือน</option>
+          <option value="pass">✅ ผ่าน</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-primary" id="btn-search">🔍 ค้นหา</button>
+      <button class="btn btn-secondary" id="btn-clear-search">🔄 ล้าง</button>
+    </div>
+  </div>
+  <div id="search-content"></div>
 </div>
 
 <script>
@@ -706,7 +847,7 @@ let headers = [];
 let COL = {};
 let trendChart = null;
 
-// Tab switching logic
+// Tab switching
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const tabName = btn.dataset.tab;
@@ -715,27 +856,29 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(btn.dataset.tab).classList.add('active');
-      
-      if (tabName === 'dashboard') renderDashboard();
-      if (tabName === 'daily') renderDailyReport();
-      if (tabName === 'summary') renderSummaryReport();
+      if (btn.dataset.tab === 'trend') renderTrendAnalysis();
+      if (btn.dataset.tab === 'dashboard') renderDashboard();
+      if (btn.dataset.tab === 'summary') renderSummaryReport();
     }
   });
 });
 
-// Event Listeners for Filters
-document.getElementById('filter-date').addEventListener('change', renderDailyReport);
-document.getElementById('filter-company').addEventListener('change', renderDailyReport);
-document.getElementById('filter-product').addEventListener('change', renderDailyReport);
-document.getElementById('filter-status').addEventListener('change', renderDailyReport);
-document.getElementById('summary-range').addEventListener('change', renderSummaryReport);
+// Trend sub-tabs
+document.querySelectorAll('[data-trend-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-trend-tab]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#trend-daily, #trend-compare').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('trend-' + btn.dataset.trendTab).classList.add('active');
+    if (btn.dataset.trendTab === 'compare') renderTrendComparison();
+  });
+});
 
-// Dark Mode logic
+// Dark Mode
 document.getElementById('theme-toggle').addEventListener('click', () => {
   document.body.classList.toggle('dark-mode');
   localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
   document.getElementById('theme-toggle').textContent = document.body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark';
-  if(trendChart) trendChart.update();
 });
 
 if (localStorage.getItem('darkMode') === 'true') {
@@ -746,12 +889,12 @@ if (localStorage.getItem('darkMode') === 'true') {
 function detectColumns(headers) {
   headers.forEach((h, i) => {
     const name = h.trim();
-    if (name.includes('วันที่')) COL.date = i;
+    if (name.includes('วันที่ตรวจ')) COL.date = i;
     if (name.includes('ทะเบียนรถ')) COL.plate = i;
     if (name.includes('ชื่อบริษัทรถ') || name.includes('ชื่อบริษัท')) COL.company = i;
-    if (name.includes('อุณหภูมิ')) COL.temp = i;
-    if (name.includes('ผลอุณหภูมิ') || name.includes('สถานะ')) COL.tempResult = i;
-    if (name.includes('สินค้า')) COL.product = i;
+    if (name.includes('อุณหภูมิก่อนโหลดสินค้า')) COL.temp = i;
+    if (name.includes('ผลอุณหภูมิก่อนโหลด')) COL.tempResult = i;
+    if (name.includes('สินค้าที่โหลด')) COL.product = i;
   });
 }
 
@@ -777,9 +920,11 @@ function parseCSV(text) {
         current += char;
       }
     }
+
     row.push(current.trim());
     result.push(row);
   }
+
   return result;
 }
 
@@ -789,20 +934,6 @@ function getTodayString() {
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const y = now.getFullYear();
   return `${y}-${m}-${d}`;
-}
-
-function matchDate(dataDateStr, filterDateStr) {
-  if (!dataDateStr || !filterDateStr) return false;
-  const parts = dataDateStr.split('/');
-  if (parts.length === 3) {
-    let d = parts[0].padStart(2, '0');
-    let m = parts[1].padStart(2, '0');
-    let y = parseInt(parts[2]);
-    if (y > 2500) y -= 543;
-    const formattedDataDate = `${y}-${m}-${d}`;
-    return formattedDataDate === filterDateStr;
-  }
-  return dataDateStr.includes(filterDateStr);
 }
 
 function getTempColor(temp, result) {
@@ -824,7 +955,12 @@ function buildCard(row) {
   const status = getTempColor(temp, row[COL.tempResult]);
   const tempNum = parseFloat(temp);
 
-  const badgeText = status === 'fail' ? '❌ ไม่ผ่าน' : status === 'warn' ? '⚠️ แจ้งเตือน' : '✅ ผ่าน';
+  const badgeText =
+    status === 'fail'
+      ? '❌ ไม่ผ่าน'
+      : status === 'warn'
+      ? '⚠️ แจ้งเตือน'
+      : '✅ ผ่าน';
 
   return `
     <div class="card card-${status}">
@@ -848,11 +984,13 @@ function buildCard(row) {
 
 function getCompanyStats(data) {
   const stats = {};
+  
   data.forEach(row => {
     const company = row[COL.company] || 'ไม่ระบุ';
     if (!stats[company]) {
       stats[company] = { total: 0, pass: 0, fail: 0, warn: 0, temps: [] };
     }
+
     const status = getTempColor(row[COL.temp], row[COL.tempResult]);
     const temp = parseFloat(row[COL.temp]);
 
@@ -860,15 +998,18 @@ function getCompanyStats(data) {
     stats[company][status]++;
     if (!isNaN(temp)) stats[company].temps.push(temp);
   });
+
   return stats;
 }
 
 function calculateCompanyScore(stats) {
   const scores = {};
+  
   Object.entries(stats).forEach(([company, data]) => {
     const passRate = (data.pass / data.total) * 100;
-    const avgTemp = data.temps.length ? (data.temps.reduce((a, b) => a + b, 0) / data.temps.length) : 0;
+    const avgTemp = data.temps.length ? (data.temps.reduce((a, b) => a + b) / data.temps.length) : 0;
     const tempScore = Math.max(0, 100 - (avgTemp * 10));
+    
     scores[company] = {
       passRate,
       tempScore,
@@ -876,12 +1017,11 @@ function calculateCompanyScore(stats) {
       stats: data
     };
   });
+
   return scores;
 }
 
 function renderDashboard() {
-  if (allData.length === 0) return;
-
   const stats = getCompanyStats(allData);
   const scores = calculateCompanyScore(stats);
 
@@ -891,7 +1031,7 @@ function renderDashboard() {
   const warnRuns = allData.filter(r => getTempColor(r[COL.temp], r[COL.tempResult]) === 'warn').length;
 
   const temps = allData.map(r => parseFloat(r[COL.temp])).filter(t => !isNaN(t));
-  const avgTemp = temps.length ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : '-';
+  const avgTemp = temps.length ? (temps.reduce((a, b) => a + b) / temps.length).toFixed(1) : '-';
   const maxTemp = temps.length ? Math.max(...temps).toFixed(1) : '-';
   const minTemp = temps.length ? Math.min(...temps).toFixed(1) : '-';
 
@@ -904,186 +1044,57 @@ function renderDashboard() {
         <div class="kpi-value">${totalRuns}</div>
         <div class="kpi-sub">ครั้ง</div>
       </div>
+
       <div class="kpi">
         <div class="kpi-label">✅ ผ่าน</div>
         <div class="kpi-value">${passRuns}</div>
         <div class="kpi-sub">${totalRuns > 0 ? ((passRuns/totalRuns)*100).toFixed(1) : 0}%</div>
       </div>
+
       <div class="kpi">
         <div class="kpi-label">⚠️ แจ้งเตือน</div>
         <div class="kpi-value">${warnRuns}</div>
         <div class="kpi-sub">${totalRuns > 0 ? ((warnRuns/totalRuns)*100).toFixed(1) : 0}%</div>
       </div>
+
       <div class="kpi">
         <div class="kpi-label">❌ ไม่ผ่าน</div>
         <div class="kpi-value">${failRuns}</div>
         <div class="kpi-sub">${totalRuns > 0 ? ((failRuns/totalRuns)*100).toFixed(1) : 0}%</div>
       </div>
+
       <div class="kpi">
         <div class="kpi-label">🌡️ เฉลี่ย</div>
         <div class="kpi-value">${avgTemp}</div>
         <div class="kpi-sub">°C</div>
       </div>
+
       <div class="kpi">
         <div class="kpi-label">📈 สูงสุด</div>
         <div class="kpi-value">${maxTemp}</div>
         <div class="kpi-sub">°C</div>
       </div>
+
       <div class="kpi">
         <div class="kpi-label">📉 ต่ำสุด</div>
         <div class="kpi-value">${minTemp}</div>
         <div class="kpi-sub">°C</div>
       </div>
+
       <div class="kpi">
         <div class="kpi-label">🏆 บริษัทดีที่สุด</div>
         <div class="kpi-value" style="font-size: 20px;">${topCompany ? topCompany[0].substring(0, 8) : '-'}</div>
         <div class="kpi-sub">${topCompany ? topCompany[1].passRate.toFixed(1) : 0}%</div>
       </div>
     </div>
-
-    <div class="chart-container">
-      <div class="chart-title">📈 แนวโน้มอุณหภูมิตัวเลขจริง 30 รายการล่าสุด</div>
-      <canvas id="tempChart"></canvas>
-    </div>
   `;
 
   document.getElementById('dashboard-content').innerHTML = html;
-  renderTempChart();
-}
-
-function renderTempChart() {
-  const ctx = document.getElementById('tempChart');
-  if (!ctx) return;
-  
-  const recentData = allData.slice(-30).filter(r => !isNaN(parseFloat(r[COL.temp])));
-  const labels = recentData.map(r => r[COL.date] + ' (' + r[COL.plate] + ')');
-  const tempValues = recentData.map(r => parseFloat(r[COL.temp]));
-
-  if (trendChart) {
-    trendChart.destroy();
-  }
-
-  trendChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'อุณหภูมิจริง (°C)',
-        data: tempValues,
-        borderColor: '#0F3A7D',
-        backgroundColor: 'rgba(15, 58, 125, 0.1)',
-        borderWidth: 2,
-        tension: 0.3,
-        fill: true,
-        pointBackgroundColor: tempValues.map(t => t > 5 ? '#EF4444' : t > 4 ? '#F59E0B' : '#10B981')
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      },
-      scales: {
-        y: {
-          beginAtZero: false,
-          title: { display: true, text: 'อุณหภูมิ (°C)', color: 'var(--text-secondary)' },
-          ticks: { color: 'var(--text-secondary)' }
-        },
-        x: {
-          ticks: { color: 'var(--text-secondary)', maxTicksLimit: 10 }
-        }
-      }
-    }
-  });
-}
-
-function renderDailyReport() {
-  const filterDate = document.getElementById('filter-date').value;
-  const filterCompany = document.getElementById('filter-company').value;
-  const filterProduct = document.getElementById('filter-product').value;
-  const filterStatus = document.getElementById('filter-status').value;
-
-  let filtered = allData.filter(row => {
-    if (!row[COL.plate]) return false;
-    if (filterDate && !matchDate(row[COL.date], filterDate)) return false;
-    if (filterCompany && row[COL.company] !== filterCompany) return false;
-    if (filterProduct && !(row[COL.product] || '').includes(filterProduct)) return false;
-
-    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
-    if (filterStatus && status !== filterStatus) return false;
-
-    return true;
-  });
-
-  const problems = filtered.filter(r => {
-    const s = getTempColor(r[COL.temp], r[COL.tempResult]);
-    return s === 'fail' || s === 'warn';
-  });
-
-  const passed = filtered.filter(r => getTempColor(r[COL.temp], r[COL.tempResult]) === 'pass');
-
-  const totalCount = filtered.length;
-  const passCount = passed.length;
-  const failCount = problems.length;
-
-  const temps = filtered.map(r => parseFloat(r[COL.temp])).filter(t => !isNaN(t));
-
-  const avgTemp = temps.length ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : '-';
-  const maxTemp = temps.length ? Math.max(...temps).toFixed(1) : '-';
-  const minTemp = temps.length ? Math.min(...temps).toFixed(1) : '-';
-
-  document.getElementById('display-date').textContent = filterDate || getTodayString();
-  document.getElementById('last-update').textContent = new Date().toLocaleTimeString('th-TH');
-
-  let html = `
-    <div class="kpi-row">
-      <div class="kpi"><div class="kpi-label">📊 รถที่ตรวจ</div><div class="kpi-value">${totalCount}</div></div>
-      <div class="kpi"><div class="kpi-label">✅ ผ่าน</div><div class="kpi-value">${passCount}</div><div class="kpi-sub">${totalCount > 0 ? ((passCount/totalCount)*100).toFixed(1) : 0}%</div></div>
-      <div class="kpi"><div class="kpi-label">⚠️ ปัญหา</div><div class="kpi-value">${failCount}</div><div class="kpi-sub">${totalCount > 0 ? ((failCount/totalCount)*100).toFixed(1) : 0}%</div></div>
-      <div class="kpi"><div class="kpi-label">🌡️ เฉลี่ย</div><div class="kpi-value">${avgTemp}</div><div class="kpi-sub">°C</div></div>
-      <div class="kpi"><div class="kpi-label">📈 สูงสุด</div><div class="kpi-value">${maxTemp}</div><div class="kpi-sub">°C</div></div>
-      <div class="kpi"><div class="kpi-label">📉 ต่ำสุด</div><div class="kpi-value">${minTemp}</div><div class="kpi-sub">°C</div></div>
-    </div>
-  `;
-
-  const worstTruck = filtered
-    .filter(r => getTempColor(r[COL.temp], r[COL.tempResult]) === 'fail')
-    .sort((a, b) => parseFloat(b[COL.temp]) - parseFloat(a[COL.temp]))[0];
-
-  if (worstTruck) {
-    html += `
-    <div class="alert-box">
-      <div class="alert-content">
-        <div class="alert-title">⚠️ ตรวจพบปัญหาอุณหภูมิสูงผิดปกติ</div>
-        <div class="alert-plate">รถทะเบียน: ${worstTruck[COL.plate] || '-'}</div>
-        <div class="alert-temp">${parseFloat(worstTruck[COL.temp]).toFixed(1)}°C</div>
-        <div style="margin-top: 8px; font-size: 12px; opacity: 0.9;">
-          บริษัท: ${worstTruck[COL.company] || '-'} | สินค้า: ${worstTruck[COL.product] || '-'}
-        </div>
-      </div>
-    </div>`;
-  }
-
-  html += `<div class="cards-grid">`;
-  
-  if (filtered.length > 0) {
-    filtered.forEach(row => {
-      html += buildCard(row);
-    });
-  } else {
-    html += `
-      <div class="empty-state" style="grid-column: 1 / -1;">
-        ไม่มีข้อมูลการตรวจสอบในเงื่อนไขที่เลือก
-      </div>`;
-  }
-  
-  html += `</div>`;
-  document.getElementById('daily-content').innerHTML = html;
 }
 
 function renderSummaryReport() {
   const range = document.getElementById('summary-range').value;
+  const now = new Date();
   let groupedData = {};
   let dateFormat = '';
 
@@ -1144,7 +1155,7 @@ function renderSummaryReport() {
   Object.keys(groupedData).sort().forEach(key => {
     const data = groupedData[key];
     const passRate = ((data.pass / data.total) * 100).toFixed(1);
-    const avgTemp = data.temps.length ? (data.temps.reduce((a, b) => a + b, 0) / data.temps.length).toFixed(1) : '-';
+    const avgTemp = data.temps.length ? (data.temps.reduce((a, b) => a + b) / data.temps.length).toFixed(1) : '-';
 
     html += `
       <tr>
@@ -1163,51 +1174,1034 @@ function renderSummaryReport() {
   document.getElementById('summary-content').innerHTML = html;
 }
 
-// System Initialization
-async function initApp() {
-  try {
-    const response = await fetch(CSV_URL);
-    if (!response.ok) throw new Error('Network response was not ok');
-    const csvText = await response.text();
-    
-    const parsed = parseCSV(csvText);
-    if (parsed.length > 0) {
-      headers = parsed[0];
-      detectColumns(headers);
-      allData = parsed.slice(1).filter(row => row.length > 1 && row[COL.date]); // Filter out empty rows
+function renderDailyReport() {
+  const filterDate = document.getElementById('filter-date').value;
+  const filterCompany = document.getElementById('filter-company').value;
+  const filterProduct = document.getElementById('filter-product').value;
+  const filterStatus = document.getElementById('filter-status').value;
 
-      // Populate Company Dropdown
-      const companies = [...new Set(allData.map(r => r[COL.company]).filter(Boolean))].sort();
-      const companySelect = document.getElementById('filter-company');
-      companies.forEach(company => {
-        const option = document.createElement('option');
-        option.value = company;
-        option.textContent = company;
-        companySelect.appendChild(option);
-      });
+  let filtered = allData.filter(row => {
+    if (!row[COL.plate]) return false;
+    if (filterDate && !matchDate(row[COL.date], filterDate)) return false;
+    if (filterCompany && row[COL.company] !== filterCompany) return false;
+    if (filterProduct && !(row[COL.product] || '').includes(filterProduct)) return false;
 
-      // Update date UI
-      document.getElementById('display-date').textContent = getTodayString();
-      document.getElementById('filter-date').value = getTodayString();
-      document.getElementById('last-update').textContent = 'อัปเดตล่าสุด: ' + new Date().toLocaleTimeString('th-TH');
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    if (filterStatus && status !== filterStatus) return false;
 
-      // Render default tab
-      renderDashboard();
-    } else {
-      document.getElementById('dashboard-content').innerHTML = `<div class="empty-state">ไม่พบข้อมูลในระบบ</div>`;
-    }
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    document.getElementById('dashboard-content').innerHTML = `
+    return true;
+  });
+
+  const problems = filtered.filter(r => {
+    const s = getTempColor(r[COL.temp], r[COL.tempResult]);
+    return s === 'fail' || s === 'warn';
+  });
+
+  const passed = filtered.filter(r =>
+    getTempColor(r[COL.temp], r[COL.tempResult]) === 'pass'
+  );
+
+  const totalCount = filtered.length;
+  const passCount = passed.length;
+  const failCount = problems.length;
+
+  const temps = filtered
+    .map(r => parseFloat(r[COL.temp]))
+    .filter(t => !isNaN(t));
+
+  const avgTemp = temps.length ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : '-';
+  const maxTemp = temps.length ? Math.max(...temps).toFixed(1) : '-';
+  const minTemp = temps.length ? Math.min(...temps).toFixed(1) : '-';
+
+  document.getElementById('display-date').textContent = filterDate || getTodayString();
+  document.getElementById('last-update').textContent = new Date().toLocaleTimeString('th-TH');
+
+  let html = `
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">📊 รถที่ตรวจ</div>
+        <div class="kpi-value">${totalCount}</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">✅ ผ่าน</div>
+        <div class="kpi-value">${passCount}</div>
+        <div class="kpi-sub">${totalCount > 0 ? ((passCount/totalCount)*100).toFixed(1) : 0}%</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">⚠️ ปัญหา</div>
+        <div class="kpi-value">${failCount}</div>
+        <div class="kpi-sub">${totalCount > 0 ? ((failCount/totalCount)*100).toFixed(1) : 0}%</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">🌡️ เฉลี่ย</div>
+        <div class="kpi-value">${avgTemp}</div>
+        <div class="kpi-sub">°C</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">📈 สูงสุด</div>
+        <div class="kpi-value">${maxTemp}</div>
+        <div class="kpi-sub">°C</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">📉 ต่ำสุด</div>
+        <div class="kpi-value">${minTemp}</div>
+        <div class="kpi-sub">°C</div>
+      </div>
+    </div>
+  `;
+
+  const worstTruck = filtered
+    .filter(r => getTempColor(r[COL.temp], r[COL.tempResult]) === 'fail')
+    .sort((a, b) => parseFloat(b[COL.temp]) - parseFloat(a[COL.temp]))[0];
+
+  if (worstTruck) {
+    html += `
       <div class="alert-box">
-        <div class="alert-title">❌ เกิดข้อผิดพลาดในการโหลดข้อมูล</div>
-        <p style="font-size: 14px;">โปรดตรวจสอบลิงก์ Google Sheet ว่าได้เปิดเป็น "เผยแพร่ทางเว็บ" (Publish to web) เป็นแบบ CSV แล้วหรือไม่</p>
-      </div>`;
+        <div class="alert-content">
+          <div class="alert-title">🔴 รถไม่ผ่านหนักสุด</div>
+          <div class="alert-plate">${worstTruck[COL.plate]}</div>
+          <div class="alert-temp">${parseFloat(worstTruck[COL.temp]).toFixed(1)}°C</div>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `<div class="section-title">⚠️ รถที่มีปัญหา (${problems.length} คัน)</div>`;
+
+  if (problems.length === 0) {
+    html += '<div class="empty-state">✅ ไม่มีรถที่มีปัญหา</div>';
+  } else {
+    html += '<div class="cards-grid">';
+    problems.forEach(row => html += buildCard(row));
+    html += '</div>';
+  }
+
+  document.getElementById('daily-content').innerHTML = html;
+}
+
+function matchDate(rowDate, filterDate) {
+  if (!filterDate) return true;
+  if (!rowDate) return false;
+
+  try {
+    const fp = filterDate.split('-');
+    const fy = parseInt(fp[0]);
+    const fm = parseInt(fp[1]);
+    const fd = parseInt(fp[2]);
+
+    const parts = rowDate.split('/');
+    if (parts.length === 3) {
+      const rd = parseInt(parts[0]);
+      const rm = parseInt(parts[1]);
+      let ry = parseInt(parts[2]);
+      if (ry > 2500) ry = ry - 543;
+      return rd === fd && rm === fm && ry === fy;
+    }
+  } catch (e) {}
+
+  return false;
+}
+
+function renderCompanyPerformance() {
+  const stats = getCompanyStats(allData);
+  const scores = calculateCompanyScore(stats);
+
+  let html = `<div class="summary-box">
+    <div class="summary-title">📊 ประสิทธิภาพแต่ละบริษัท</div>`;
+
+  Object.entries(scores)
+    .sort((a, b) => b[1].total - a[1].total)
+    .forEach(([company, data]) => {
+      const passRate = data.passRate.toFixed(1);
+      const failRate = (100 - data.passRate).toFixed(1);
+
+      html += `
+        <div style="margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <strong>${company}</strong>
+            <span style="color: var(--primary); font-weight: 700;">${passRate}%</span>
+          </div>
+          <div style="display: flex; height: 20px; border-radius: 10px; overflow: hidden; background: var(--light);">
+            <div style="width:${passRate}%; background: linear-gradient(90deg, #10B981, #059669);"></div>
+            <div style="width:${failRate}%; background: linear-gradient(90deg, #EF4444, #DC2626);"></div>
+          </div>
+        </div>
+      `;
+    });
+
+  html += '</div>';
+  document.getElementById('company-content').innerHTML = html;
+}
+
+function renderRanking() {
+  const stats = getCompanyStats(allData);
+  const scores = calculateCompanyScore(stats);
+
+  const sorted = Object.entries(scores)
+    .sort((a, b) => b[1].total - a[1].total);
+
+  const medals = ['🥇', '🥈', '🥉'];
+  let html = `<div class="summary-box">
+    <div class="summary-title">🏆 อันดับบริษัท</div>`;
+
+  sorted.forEach(([company, data], index) => {
+    const medal = medals[index] || '📌';
+    const stars = Math.round(data.total / 20);
+    const starDisplay = '⭐'.repeat(Math.min(stars, 5));
+
+    html += `
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 10px; background: var(--light); border-radius: 10px; border-left: 4px solid var(--primary);">
+        <div style="font-size: 24px; min-width: 40px;">${medal}</div>
+        <div style="flex: 1;">
+          <div style="font-weight: 700; margin-bottom: 4px;">${company}</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">รถ: ${data.stats.total} | ผ่าน: ${data.stats.pass} | ไม่ผ่าน: ${data.stats.fail}</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 20px; font-weight: 800; font-family: 'Times New Roman', serif; color: var(--primary);">${data.total.toFixed(1)}</div>
+          <div style="font-size: 14px;">${starDisplay}</div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  document.getElementById('ranking-content').innerHTML = html;
+}
+
+function renderTrendAnalysis() {
+  const rangeValue = document.getElementById('trend-range').value;
+  const company = document.getElementById('trend-company').value;
+
+  const now = new Date();
+  let startDate;
+  
+  if (rangeValue === 'month') {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (rangeValue === 'prev-month') {
+    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    const trendData = {};
+    allData.forEach(row => {
+      if (company && row[COL.company] !== company) return;
+      const dateStr = row[COL.date];
+      if (!dateStr) return;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return;
+      let d = parseInt(parts[0]);
+      let m = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (y > 2500) y = y - 543;
+      const rowDate = new Date(y, m - 1, d);
+      if (rowDate < startDate || rowDate > endOfPrevMonth) return;
+      const key = rowDate.toISOString().split('T')[0];
+      if (!trendData[key]) {
+        trendData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+      }
+      const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+      const temp = parseFloat(row[COL.temp]);
+      trendData[key].total++;
+      trendData[key][status]++;
+      if (!isNaN(temp)) trendData[key].temps.push(temp);
+    });
+    renderTrendChart(trendData);
+    return;
+  } else if (rangeValue === 'year') {
+    startDate = new Date(now.getFullYear(), 0, 1);
+  } else if (rangeValue === 'prev-year') {
+    startDate = new Date(now.getFullYear() - 1, 0, 1);
+    const endOfPrevYear = new Date(now.getFullYear() - 1, 11, 31);
+    const trendData = {};
+    allData.forEach(row => {
+      if (company && row[COL.company] !== company) return;
+      const dateStr = row[COL.date];
+      if (!dateStr) return;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return;
+      let d = parseInt(parts[0]);
+      let m = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (y > 2500) y = y - 543;
+      const rowDate = new Date(y, m - 1, d);
+      if (rowDate < startDate || rowDate > endOfPrevYear) return;
+      const key = rowDate.toISOString().split('T')[0];
+      if (!trendData[key]) {
+        trendData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+      }
+      const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+      const temp = parseFloat(row[COL.temp]);
+      trendData[key].total++;
+      trendData[key][status]++;
+      if (!isNaN(temp)) trendData[key].temps.push(temp);
+    });
+    renderTrendChart(trendData);
+    return;
+  } else {
+    const range = parseInt(rangeValue) || 7;
+    startDate = new Date(now.getTime() - range * 24 * 60 * 60 * 1000);
+  }
+
+  const trendData = {};
+  
+  allData.forEach(row => {
+    if (company && row[COL.company] !== company) return;
+
+    const dateStr = row[COL.date];
+    if (!dateStr) return;
+
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return;
+
+    let d = parseInt(parts[0]);
+    let m = parseInt(parts[1]);
+    let y = parseInt(parts[2]);
+    if (y > 2500) y = y - 543;
+
+    const rowDate = new Date(y, m - 1, d);
+    if (rowDate < startDate) return;
+
+    const key = rowDate.toISOString().split('T')[0];
+    if (!trendData[key]) {
+      trendData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+    }
+
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    const temp = parseFloat(row[COL.temp]);
+
+    trendData[key].total++;
+    trendData[key][status]++;
+    if (!isNaN(temp)) trendData[key].temps.push(temp);
+  });
+
+  renderTrendChart(trendData);
+}
+
+function renderTrendChart(trendData) {
+  const dates = Object.keys(trendData).sort();
+  const passRates = dates.map(d => (trendData[d].pass / trendData[d].total * 100).toFixed(1));
+  const avgTemps = dates.map(d => trendData[d].temps.length ? (trendData[d].temps.reduce((a, b) => a + b) / trendData[d].temps.length).toFixed(1) : 0);
+
+  let html = `<div class="chart-container">
+    <div class="chart-title">📈 แนวโน้มการปรับปรุง</div>
+    <canvas id="trendChart"></canvas>
+  </div>`;
+
+  document.getElementById('trend-daily').innerHTML = html;
+
+  setTimeout(() => {
+    const ctx = document.getElementById('trendChart');
+    if (!ctx) return;
+
+    if (trendChart) trendChart.destroy();
+    document.getElementById('trend-compare').innerHTML = '';
+
+    trendChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [{
+          label: 'อัตราการผ่าน (%)',
+          data: passRates,
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 3,
+          pointRadius: 4,
+          pointBackgroundColor: '#10B981',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2
+        }, {
+          label: 'อุณหภูมิเฉลี่ย (°C)',
+          data: avgTemps,
+          borderColor: '#F59E0B',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 3,
+          pointRadius: 4,
+          pointBackgroundColor: '#F59E0B',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          yAxisID: 'y1'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: {
+              font: { size: 12, weight: 'bold' },
+              padding: 16
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+          },
+          y1: {
+            type: 'linear',
+            position: 'right',
+            beginAtZero: true,
+            max: 10,
+            grid: { drawOnChartArea: false }
+          }
+        }
+      }
+    });
+  }, 100);
+}
+
+function renderTrendComparison() {
+  const rangeValue = document.getElementById('trend-range').value;
+  const company = document.getElementById('trend-company').value;
+  const now = new Date();
+  
+  let currentData = {};
+  let previousData = {};
+  let currentLabel = '';
+  let previousLabel = '';
+  
+  if (rangeValue === '7') {
+    const startCurrent = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const startPrevious = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const endPrevious = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    currentLabel = '7 วันปัจจุบัน';
+    previousLabel = '7 วันที่ผ่านมา';
+    
+    allData.forEach(row => {
+      if (company && row[COL.company] !== company) return;
+      const dateStr = row[COL.date];
+      if (!dateStr) return;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return;
+      let d = parseInt(parts[0]);
+      let m = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (y > 2500) y = y - 543;
+      const rowDate = new Date(y, m - 1, d);
+      
+      const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+      const temp = parseFloat(row[COL.temp]);
+      
+      if (rowDate >= startCurrent) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!currentData[key]) currentData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        currentData[key].total++;
+        currentData[key][status]++;
+        if (!isNaN(temp)) currentData[key].temps.push(temp);
+      } else if (rowDate >= startPrevious && rowDate < endPrevious) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!previousData[key]) previousData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        previousData[key].total++;
+        previousData[key][status]++;
+        if (!isNaN(temp)) previousData[key].temps.push(temp);
+      }
+    });
+  } else if (rangeValue === 'month') {
+    const startCurrent = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startPrevious = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endPrevious = new Date(now.getFullYear(), now.getMonth(), 0);
+    currentLabel = 'เดือนปัจจุบัน';
+    previousLabel = 'เดือนที่ผ่านมา';
+    
+    allData.forEach(row => {
+      if (company && row[COL.company] !== company) return;
+      const dateStr = row[COL.date];
+      if (!dateStr) return;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return;
+      let d = parseInt(parts[0]);
+      let m = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (y > 2500) y = y - 543;
+      const rowDate = new Date(y, m - 1, d);
+      
+      const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+      const temp = parseFloat(row[COL.temp]);
+      
+      if (rowDate >= startCurrent) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!currentData[key]) currentData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        currentData[key].total++;
+        currentData[key][status]++;
+        if (!isNaN(temp)) currentData[key].temps.push(temp);
+      } else if (rowDate >= startPrevious && rowDate <= endPrevious) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!previousData[key]) previousData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        previousData[key].total++;
+        previousData[key][status]++;
+        if (!isNaN(temp)) previousData[key].temps.push(temp);
+      }
+    });
+  } else if (rangeValue === 'year') {
+    const startCurrent = new Date(now.getFullYear(), 0, 1);
+    const startPrevious = new Date(now.getFullYear() - 1, 0, 1);
+    const endPrevious = new Date(now.getFullYear() - 1, 11, 31);
+    currentLabel = 'ปีปัจจุบัน';
+    previousLabel = 'ปีที่ผ่านมา';
+    
+    allData.forEach(row => {
+      if (company && row[COL.company] !== company) return;
+      const dateStr = row[COL.date];
+      if (!dateStr) return;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return;
+      let d = parseInt(parts[0]);
+      let m = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (y > 2500) y = y - 543;
+      const rowDate = new Date(y, m - 1, d);
+      
+      const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+      const temp = parseFloat(row[COL.temp]);
+      
+      if (rowDate >= startCurrent) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!currentData[key]) currentData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        currentData[key].total++;
+        currentData[key][status]++;
+        if (!isNaN(temp)) currentData[key].temps.push(temp);
+      } else if (rowDate >= startPrevious && rowDate <= endPrevious) {
+        const key = rowDate.toISOString().split('T')[0];
+        if (!previousData[key]) previousData[key] = { pass: 0, fail: 0, warn: 0, total: 0, temps: [] };
+        previousData[key].total++;
+        previousData[key][status]++;
+        if (!isNaN(temp)) previousData[key].temps.push(temp);
+      }
+    });
+  }
+  
+  const allDates = [...new Set([...Object.keys(currentData), ...Object.keys(previousData)])].sort();
+  
+  let html = `<div class="chart-container" style="height: 400px;">
+    <div class="chart-title">📊 เปรียบเทียบอัตราการผ่าน</div>
+    <canvas id="compareChart"></canvas>
+  </div>`;
+  
+  document.getElementById('trend-compare').innerHTML = html;
+  
+  setTimeout(() => {
+    const ctx = document.getElementById('compareChart');
+    if (!ctx) return;
+    
+    if (trendChart) trendChart.destroy();
+    
+    trendChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: allDates,
+        datasets: [{
+          label: currentLabel,
+          data: allDates.map(d => currentData[d] ? (currentData[d].pass / currentData[d].total * 100).toFixed(1) : 0),
+          backgroundColor: '#10B981',
+          borderColor: '#059669',
+          borderWidth: 2
+        }, {
+          label: previousLabel,
+          data: allDates.map(d => previousData[d] ? (previousData[d].pass / previousData[d].total * 100).toFixed(1) : 0),
+          backgroundColor: '#F59E0B',
+          borderColor: '#D97706',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              font: { size: 12, weight: 'bold' },
+              padding: 16
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+          }
+        }
+      }
+    });
+  }, 100);
+}
+
+function renderAdvancedSearch() {
+  const plateTerm = document.getElementById('search-plate').value;
+  const companyTerm = document.getElementById('search-company').value;
+  const productTerm = document.getElementById('search-product').value;
+  const statusTerm = document.getElementById('search-status').value;
+
+  let filtered = allData.filter(row => {
+    if (plateTerm && row[COL.plate] !== plateTerm) return false;
+    if (companyTerm && row[COL.company] !== companyTerm) return false;
+    if (productTerm && !(row[COL.product] || '').includes(productTerm)) return false;
+
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    if (statusTerm && status !== statusTerm) return false;
+
+    return true;
+  });
+
+  let html = `<div class="section-title">🔍 ผลการค้นหา (${filtered.length} รายการ)</div>`;
+
+  if (filtered.length === 0) {
+    html += '<div class="empty-state">ไม่พบข้อมูลที่ตรงกับการค้นหา</div>';
+  } else {
+    html += '<div class="cards-grid">';
+    filtered.forEach(row => html += buildCard(row));
+    html += '</div>';
+  }
+
+  document.getElementById('search-content').innerHTML = html;
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
+    const rows = parseCSV(text);
+
+    headers = rows[0];
+    detectColumns(headers);
+    allData = rows.slice(1);
+
+    const companies = [...new Set(allData.map(r => r[COL.company]).filter(Boolean))].sort();
+    
+    ['filter-company', 'trend-company', 'search-company'].forEach(id => {
+      const select = document.getElementById(id);
+      const existing = Array.from(select.options).map(o => o.value);
+      companies.forEach(c => {
+        if (!existing.includes(c)) {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          select.appendChild(opt);
+        }
+      });
+    });
+
+    const products = [...new Set(
+      allData.flatMap(r => (r[COL.product] || '').split(',').map(p => p.trim())).filter(Boolean)
+    )].sort();
+
+    ['filter-product', 'search-product'].forEach(id => {
+      const select = document.getElementById(id);
+      const existing = Array.from(select.options).map(o => o.value);
+      products.forEach(p => {
+        if (!existing.includes(p)) {
+          const opt = document.createElement('option');
+          opt.value = p;
+          opt.textContent = p;
+          select.appendChild(opt);
+        }
+      });
+    });
+
+    // Populate search company listener
+    document.getElementById('search-company').addEventListener('change', () => {
+      const selectedCompany = document.getElementById('search-company').value;
+      const plateSelect = document.getElementById('search-plate');
+      
+      plateSelect.innerHTML = '<option value="">-- เลือกทะเบียนรถ --</option>';
+      
+      if (selectedCompany) {
+        const plateData = {};
+        allData
+          .filter(r => r[COL.company] === selectedCompany)
+          .forEach(r => {
+            const plate = r[COL.plate];
+            if (plate) {
+              if (!plateData[plate]) {
+                plateData[plate] = { date: r[COL.date], temp: r[COL.temp], status: getTempColor(r[COL.temp], r[COL.tempResult]) };
+              }
+            }
+          });
+        
+        Object.keys(plateData).sort().forEach(plate => {
+          const data = plateData[plate];
+          const statusEmoji = data.status === 'fail' ? '❌' : data.status === 'warn' ? '⚠️' : '✅';
+          const tempText = data.temp ? `${parseFloat(data.temp).toFixed(1)}°C` : '-';
+          const dateText = data.date ? ` (${data.date})` : '';
+          const opt = document.createElement('option');
+          opt.value = plate;
+          opt.textContent = `${plate} ${statusEmoji} ${tempText}${dateText}`;
+          plateSelect.appendChild(opt);
+        });
+      }
+    });
+
+    renderDashboard();
+    renderDailyReport();
+    renderCompanyPerformance();
+    renderRanking();
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('dashboard-content').innerHTML = '<div class="empty-state">❌ โหลดข้อมูลไม่ได้</div>';
   }
 }
 
-// Start App
-window.onload = initApp;
+// Event Listeners
+document.getElementById('filter-date').addEventListener('change', renderDailyReport);
+document.getElementById('filter-company').addEventListener('change', renderDailyReport);
+document.getElementById('filter-product').addEventListener('change', renderDailyReport);
+document.getElementById('filter-status').addEventListener('change', renderDailyReport);
+
+document.getElementById('trend-range').addEventListener('change', renderTrendAnalysis);
+document.getElementById('trend-company').addEventListener('change', renderTrendAnalysis);
+
+document.getElementById('summary-range').addEventListener('change', renderSummaryReport);
+
+document.getElementById('btn-search').addEventListener('click', renderAdvancedSearch);
+document.getElementById('btn-clear-search').addEventListener('click', () => {
+  document.getElementById('search-plate').value = '';
+  document.getElementById('search-company').value = '';
+  document.getElementById('search-product').value = '';
+  document.getElementById('search-status').value = '';
+  document.getElementById('search-content').innerHTML = '';
+});
+
+document.getElementById('btn-refresh').addEventListener('click', loadData);
+
+document.getElementById('btn-export-pdf').addEventListener('click', () => {
+  const element = document.getElementById('daily-content');
+  const opt = {
+    margin: 8,
+    filename: `report-${new Date().toISOString().split('T')[0]}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+  };
+  html2pdf().set(opt).from(element).save();
+});
+
+document.getElementById('btn-export-excel').addEventListener('click', () => {
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['ทะเบียนรถ', 'บริษัท', 'สินค้า', 'อุณหภูมิ', 'สถานะ', 'วันที่']
+  ]);
+  
+  allData.forEach(row => {
+    const plate = row[COL.plate] || '';
+    const company = row[COL.company] || '';
+    const product = row[COL.product] || '';
+    const temp = row[COL.temp] || '';
+    const status = getTempColor(temp, row[COL.tempResult]);
+    const date = row[COL.date] || '';
+    
+    XLSX.utils.sheet_add_aoa(ws, [[plate, company, product, temp, status, date]], { origin: -1 });
+  });
+  
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Report');
+  XLSX.writeFile(wb, `report-${new Date().toISOString().split('T')[0]}.xlsx`);
+});
+
+document.getElementById('btn-summary-export-pdf').addEventListener('click', () => {
+  const element = document.getElementById('summary-content');
+  const opt = {
+    margin: 8,
+    filename: `summary-${new Date().toISOString().split('T')[0]}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+  };
+  html2pdf().set(opt).from(element).save();
+});
+
+document.getElementById('btn-summary-export-excel').addEventListener('click', () => {
+  const range = document.getElementById('summary-range').value;
+  const now = new Date();
+  let groupedData = {};
+  let dateFormat = '';
+
+  allData.forEach(row => {
+    const dateStr = row[COL.date];
+    if (!dateStr) return;
+
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return;
+
+    let d = parseInt(parts[0]);
+    let m = parseInt(parts[1]);
+    let y = parseInt(parts[2]);
+    if (y > 2500) y = y - 543;
+
+    let key = '';
+    if (range === 'day') {
+      key = dateStr;
+    } else if (range === 'week') {
+      const date = new Date(y, m - 1, d);
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - date.getDay());
+      key = `สัปดาห์ ${weekStart.toLocaleDateString('th-TH')}`;
+    } else if (range === 'month') {
+      key = `${m}/${y}`;
+    }
+
+    if (!groupedData[key]) {
+      groupedData[key] = { total: 0, pass: 0, fail: 0, warn: 0, temps: [] };
+    }
+
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    const temp = parseFloat(row[COL.temp]);
+
+    groupedData[key].total++;
+    groupedData[key][status]++;
+    if (!isNaN(temp)) groupedData[key].temps.push(temp);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['วันที่', 'รวม', 'ผ่าน', 'แจ้งเตือน', 'ไม่ผ่าน', 'อัตราผ่าน (%)', 'อุณหภูมิเฉลี่ย']
+  ]);
+  
+  Object.keys(groupedData).sort().forEach(key => {
+    const data = groupedData[key];
+    const passRate = ((data.pass / data.total) * 100).toFixed(1);
+    const avgTemp = data.temps.length ? (data.temps.reduce((a, b) => a + b) / data.temps.length).toFixed(1) : '-';
+    
+    XLSX.utils.sheet_add_aoa(ws, [[key, data.total, data.pass, data.warn, data.fail, passRate, avgTemp]], { origin: -1 });
+  });
+  
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Summary');
+  XLSX.writeFile(wb, `summary-${new Date().toISOString().split('T')[0]}.xlsx`);
+});
+
+// ===== ฟังก์ชั่นสำหรับ Tab: ประสิทธิภาพบริษัท =====
+function renderCompanyPerformance() {
+  const stats = getCompanyStats(allData);
+  
+  let html = `<div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>บริษัท</th>
+          <th>รวม</th>
+          <th>ผ่าน</th>
+          <th>แจ้งเตือน</th>
+          <th>ไม่ผ่าน</th>
+          <th>อัตราผ่าน (%)</th>
+          <th>อุณหภูมิเฉลี่ย</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  Object.keys(stats).sort().forEach(company => {
+    const data = stats[company];
+    const passRate = ((data.pass / data.total) * 100).toFixed(1);
+    const avgTemp = data.temps.length ? (data.temps.reduce((a, b) => a + b) / data.temps.length).toFixed(1) : '-';
+    const passColor = passRate >= 80 ? '#10B981' : passRate >= 60 ? '#F59E0B' : '#EF4444';
+
+    html += `
+      <tr>
+        <td><strong>${company}</strong></td>
+        <td>${data.total}</td>
+        <td>✅ ${data.pass}</td>
+        <td>⚠️ ${data.warn}</td>
+        <td>❌ ${data.fail}</td>
+        <td><strong style="color: ${passColor}">${passRate}%</strong></td>
+        <td>${avgTemp}°C</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table></div>`;
+  document.getElementById('company-content').innerHTML = html;
+}
+
+// ===== ฟังก์ชั่นสำหรับ Tab: อันดับบริษัท =====
+function renderRanking() {
+  const stats = getCompanyStats(allData);
+  
+  // เรียงลำดับตามอัตราผ่าน (สูงสุด)
+  const topCompanies = Object.entries(stats)
+    .map(([name, data]) => ({
+      name,
+      pass: data.pass,
+      total: data.total,
+      rate: (data.pass / data.total) * 100
+    }))
+    .sort((a, b) => b.rate - a.rate);
+
+  // เรียงลำดับตามไม่ผ่าน (มากที่สุด)
+  const bottomCompanies = Object.entries(stats)
+    .map(([name, data]) => ({
+      name,
+      fail: data.fail,
+      total: data.total,
+      rate: (data.fail / data.total) * 100
+    }))
+    .sort((a, b) => b.rate - a.rate);
+
+  let html = `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div>
+        <h3 style="color: #10B981; margin-bottom: 16px; font-size: 16px; font-weight: 700;">🥇 บริษัทดีที่สุด (ผ่านมากที่สุด)</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>อันดับ</th>
+                <th>บริษัท</th>
+                <th>ผ่าน</th>
+                <th>อัตรา (%)</th>
+              </tr>
+            </thead>
+            <tbody>`;
+
+  topCompanies.slice(0, 10).forEach((item, idx) => {
+    html += `
+      <tr>
+        <td><strong>${idx + 1}</strong></td>
+        <td>${item.name}</td>
+        <td>✅ ${item.pass}/${item.total}</td>
+        <td><strong style="color: #10B981">${item.rate.toFixed(1)}%</strong></td>
+      </tr>
+    `;
+  });
+
+  html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="color: #EF4444; margin-bottom: 16px; font-size: 16px; font-weight: 700;">⚠️ บริษัทที่ต้องปรับปรุง (ไม่ผ่านมากที่สุด)</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>อันดับ</th>
+                <th>บริษัท</th>
+                <th>ไม่ผ่าน</th>
+                <th>อัตรา (%)</th>
+              </tr>
+            </thead>
+            <tbody>`;
+
+  bottomCompanies.slice(0, 10).forEach((item, idx) => {
+    html += `
+      <tr>
+        <td><strong>${idx + 1}</strong></td>
+        <td>${item.name}</td>
+        <td>❌ ${item.fail}/${item.total}</td>
+        <td><strong style="color: #EF4444">${item.rate.toFixed(1)}%</strong></td>
+      </tr>
+    `;
+  });
+
+  html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('ranking-content').innerHTML = html;
+}
+
+// ===== ปรับปรุง renderAdvancedSearch =====
+function renderAdvancedSearch() {
+  const searchPlate = document.getElementById('search-plate').value.toUpperCase();
+  const searchCompany = document.getElementById('search-company').value;
+  const searchProduct = document.getElementById('search-product').value;
+  const searchStatus = document.getElementById('search-status').value;
+
+  let filtered = allData.filter(row => {
+    if (!row[COL.plate]) return false;
+    
+    if (searchPlate && !row[COL.plate].toUpperCase().includes(searchPlate)) return false;
+    if (searchCompany && row[COL.company] !== searchCompany) return false;
+    if (searchProduct && !(row[COL.product] || '').includes(searchProduct)) return false;
+
+    const status = getTempColor(row[COL.temp], row[COL.tempResult]);
+    if (searchStatus && status !== searchStatus) return false;
+
+    return true;
+  });
+
+  let html = `<div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ทะเบียน</th>
+          <th>บริษัท</th>
+          <th>สินค้า</th>
+          <th>อุณหภูมิ (°C)</th>
+          <th>สถานะ</th>
+          <th>วันที่</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  if (filtered.length === 0) {
+    html += `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #999;">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
+  } else {
+    filtered.forEach(row => {
+      const plate = row[COL.plate] || '-';
+      const company = row[COL.company] || '-';
+      const product = row[COL.product] || '-';
+      const temp = row[COL.temp] || '-';
+      const date = row[COL.date] || '-';
+      const status = getTempColor(temp, row[COL.tempResult]);
+      
+      const statusText = status === 'fail' ? '❌ ไม่ผ่าน' : status === 'warn' ? '⚠️ แจ้งเตือน' : '✅ ผ่าน';
+      const statusColor = status === 'fail' ? '#EF4444' : status === 'warn' ? '#F59E0B' : '#10B981';
+
+      html += `
+        <tr>
+          <td><strong style="color: var(--primary)">${plate}</strong></td>
+          <td>${company}</td>
+          <td>${product}</td>
+          <td><strong>${temp}</strong></td>
+          <td><span style="color: ${statusColor}; font-weight: 700;">${statusText}</span></td>
+          <td>${date}</td>
+        </tr>
+      `;
+    });
+  }
+
+  html += `</tbody></table></div>`;
+  document.getElementById('search-content').innerHTML = html;
+}
+
+// ===== Event Listeners สำหรับแต่ละ Tab =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.tab === 'company') {
+      renderCompanyPerformance();
+    }
+    if (btn.dataset.tab === 'ranking') {
+      renderRanking();
+    }
+  });
+});
+
+// ค้นหา - เมื่อพิมพ์หรือเปลี่ยนค่า
+document.getElementById('search-plate').addEventListener('keyup', renderAdvancedSearch);
+document.getElementById('search-company').addEventListener('change', renderAdvancedSearch);
+document.getElementById('search-product').addEventListener('change', renderAdvancedSearch);
+document.getElementById('search-status').addEventListener('change', renderAdvancedSearch);
+
+document.getElementById('filter-date').value = getTodayString();
+loadData();
+setInterval(loadData, 5 * 60 * 1000);
+
 </script>
+
 </body>
 </html>
